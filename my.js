@@ -54,12 +54,24 @@ function getStats(country) {
 }
 
 
-function parseNumber(text) {
+// Build main data object:
+var countryIndex = {};
+fs.readdir(baseDir, (err, files) => {
+    files.forEach(file => {
+        var c = path.parse(file).name;
+//        console.log("Loading", c);
+        countryIndex[c] = getStats(c);
+    });
+    console.log(Object.keys(countryIndex).length + " countries loaded.");
+});
+
+setTimeout(function() {
+//    console.log(countryIndex.cc);
+//    testAllData();
+}, 2000);
 
 
-}
-
-
+// Test for and assign a 2- or 3-deep nested JSON property... or null:
 function assignOrNull(root, key1, key2, key3) {
     try {
         // Key1 should always exist. Key2 may or may not.
@@ -85,22 +97,6 @@ function assignOrNull(root, key1, key2, key3) {
         return null;
     }
 }
-
-// Build main data object:
-var countryIndex = {};
-fs.readdir(baseDir, (err, files) => {
-    files.forEach(file => {
-        var c = path.parse(file).name;
-        console.log("Loading", c);
-        countryIndex[c] = getStats(c);
-    });
-    console.log(Object.keys(countryIndex).length + " countries loaded.");
-});
-
-setTimeout(function() {
-//    console.log(countryIndex.cc);
-    testAllData();
-}, 3000);
 
 
 // Test imported data:
@@ -144,3 +140,22 @@ function testAllData() {
     }
     console.log("Errors:", errors);
 }
+
+
+// Parse complex numerical values out of a text string:
+function parseNumber(text, prefix = '', suffix = '') {
+    // Find numerical sequence using regex:
+    var re = new RegExp("(?:" + prefix + ")" + "[\\s]*([0-9\\.,])+[\\s]*" + "(?:" + suffix + ")");
+//    console.log(re);
+    var foundNum = re.exec(text)[0];
+//    console.log("Found:", foundNum);
+    // Strip commas & parseFloat it:
+    return parseFloat(foundNum.replace(',', ''));
+}
+console.log("Area:", parseNumber("29,743 sq km", "", "sq km"));
+console.log("Low:", parseNumber("lowest point: Debed River 400 m", "", "m"));
+console.log("High:", parseNumber("highest point: Aragats Lerrnagagat' 4,090 m", "", "m"));
+console.log("Pop:", parseNumber("3,051,250 (July 2016 est.)"));
+console.log("Births:", parseNumber("13.3 births/1,000 population (2016 est.)"));
+console.log("Percent:", parseNumber("13.3%", "", "%"));
+console.log("Largest Urban:", parseNumber("THE VALLEY (capital) 1,000 (2014)", "", ""));
