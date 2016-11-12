@@ -1,7 +1,7 @@
 // begin
 const fs = require('fs');
 const path = require('path');
-const baseDir = 'factbook_all/';
+const baseDir = '../factbook_all/';
 
 // Define a card:
 class Card {
@@ -322,6 +322,5 @@ setTimeout(function() {
         ben.status();
         r--;
     }
-//    compareCards([ben.playCard(), bill.playCard()], 'population.number');
 
 }, 1500);   // Wait for countries to load first

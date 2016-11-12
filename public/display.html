@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Top Trumps App @ Node Knockout 2016</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css">
+</head>
+<body>
+    <section id="main">
+        <h1>Top Trumps</h1>
+
+        <h2>Players</h2>
+        <ul id="players">
+            <li id="playerid">
+                <strong>Computer</strong>
+                <span class="card-tot">52 cards</span>
+                <span class="win-tot">999 wins</span>
+            </li>
+        </ul>
+
+        <h2>Output</h2>
+        <code id="output"></code>
+
+        <h2>Your next card</h2>
+        <div class="card">
+            <span>Your turn! Choose a category...<span id="countdown"></span></span>
+            <h3>Country</h3>
+            <button id="btn-pop">Population: 1,234,567</button>
+        </div>
+    </section>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/js/bootstrap.min.js"></script>
+    <script src="display.js"></script>
+</body>
+</html>
