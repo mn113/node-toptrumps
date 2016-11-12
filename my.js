@@ -1,7 +1,9 @@
+'use strict';
+
 // begin
 const fs = require('fs');
 const path = require('path');
-const baseDir = '../factbook_all/';
+const baseDir = 'factbook_all/';
 
 // Define a card:
 class Card {
