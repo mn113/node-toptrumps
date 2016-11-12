@@ -3,16 +3,20 @@
 const fs = require('fs');
 const path = require('path');
 
-var baseDir = 'factbook.json-master/all/';
+var baseDir = 'factbook_all/';
 
 function getStats(country) {
     // open file
     var countryJSON = JSON.parse(fs.readFileSync(baseDir + country +'.json', 'utf8'));
 
+    // Extract individual data pieces and store in my own structured object:
     var c = {};
     c.name = assignOrNull(countryJSON, "Government", "Country name", "conventional short form");
+    // Account for name aberrations:
+    if (!c.name) c.name = assignOrNull(countryJSON, "Government", "Country name", "Dutch short form");
     c.capital = {};
     c.capital.string = assignOrNull(countryJSON, "Government", "Capital", "geographic coordinates");
+    // Extract the lat and long values from coordinate string:
     c.capital.lat = c.capital.string ? Math.abs(c.capital.string.split(" ")[0] + c.capital.string.split(" ")[1]/60) : null;
     c.capital.long = c.capital.string ? Math.abs(c.capital.string.split(" ")[3] + c.capital.string.split(" ")[4]/60) : null;
     c.area = {};
@@ -25,8 +29,9 @@ function getStats(country) {
     c.borders = {};
     c.borders.land = assignOrNull(countryJSON, "Geography", "Land boundaries", "total");
     c.borders.coast =  assignOrNull(countryJSON, "Geography", "Coastline");
-    c.borders.number = assignOrNull(countryJSON, "Geography", "Land boundaries", "border countries")
-    if (c.borders.number) { c.borders.number = c.borders.number.split(',').length; }
+    c.borders.number = assignOrNull(countryJSON, "Geography", "Land boundaries", "border countries");
+    // Split and count the comma-separated list of neighbours, or use zero:
+    c.borders.number = c.borders.number ? c.borders.number.split(',').length : 0;
     c.transport = {};
     c.transport.road = assignOrNull(countryJSON, "Transportation", "Roadways", "total");
     c.transport.rail = assignOrNull(countryJSON, "Transportation", "Railways", "total");
@@ -42,11 +47,12 @@ function getStats(country) {
     c.population.medage = assignOrNull(countryJSON, "People and Society", "Median age", "total");
     c.population.births = assignOrNull(countryJSON, "People and Society", "Birth rate");
     c.population.lifexp = assignOrNull(countryJSON, "People and Society", "Life expectancy at birth", "total population");
+    // Calculate density manually:
     c.population.density = c.population.number / c.area.total;
 
     return c;
 }
-//console.log(getStats('lu'));
+
 
 function parseNumber(text) {
 
@@ -75,7 +81,7 @@ function assignOrNull(root, key1, key2, key3) {
         }
         return null;
     }
-    catch (err) {
+    catch (e) {
         return null;
     }
 }
@@ -92,5 +98,49 @@ fs.readdir(baseDir, (err, files) => {
 });
 
 setTimeout(function() {
-    console.log(countryIndex.cc);    
+//    console.log(countryIndex.cc);
+    testAllData();
 }, 3000);
+
+
+// Test imported data:
+function testAllData() {
+    var errors = {
+        "name": 0,
+        "caplat": 0,
+        "borders": 0,
+        "roads": 0,
+        "popnum": 0
+    };
+    for (var key in countryIndex) {
+        console.log(key);
+        if (countryIndex.hasOwnProperty(key)) {
+            try {
+                var cdata = countryIndex[key];
+                if (cdata.name === null) {
+                	errors.name++;
+                	console.log("NO NAME", key, cdata);
+                }
+                if (cdata.capital.lat === null) {
+                	errors.caplat++;
+                	console.log("NO CAPLAT", key, cdata);
+                }
+                if (cdata.borders.number === null) {
+                	errors.borders++;
+                	console.log("NO BORDERS", key, cdata);
+                }
+                if (cdata.transport.road === null) {
+                	errors.roads++;
+                	console.log("NO ROADS", key, cdata);
+                }
+                if (cdata.population.number === null) {
+                	errors.popnum++;
+                	console.log("NO POP", key, cdata);
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        }
+    }
+    console.log("Errors:", errors);
+}

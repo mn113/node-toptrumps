@@ -1,7 +1,7 @@
 {
-  "name": "nko2016-sample",
+  "name": "nodeknockout2016-toptrumps",
   "version": "0.0.1",
-  "description": "A barebones Node.js app using Express 4",
+  "description": "A Node.js app",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -18,7 +18,6 @@
   },
   "keywords": [
     "node",
-    "heroku",
     "express"
   ],
   "author": "Mark Pundsack",
