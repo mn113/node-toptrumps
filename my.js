@@ -13,7 +13,7 @@ function getStats(country) {
     var c = {};
     c.name = assignOrNull(countryJSON, "Government", "Country name", "conventional short form");
     // Account for name aberrations:
-    if (!c.name) c.name = assignOrNull(countryJSON, "Government", "Country name", "Dutch short form");
+    if (!c.name) { c.name = assignOrNull(countryJSON, "Government", "Country name", "Dutch short form"); }
     c.capital = {};
     c.capital.string = assignOrNull(countryJSON, "Government", "Capital", "geographic coordinates");
     // Extract the lat and long values from coordinate string:
@@ -40,7 +40,7 @@ function getStats(country) {
     c.gdp.net = assignOrNull(countryJSON, "Economy", "GDP (official exchange rate)");
     c.gdp.percapita = assignOrNull(countryJSON, "Economy", "GDP - per capita (PPP)");
     c.population = {};
-    c.population.number = assignOrNull(countryJSON, "People and Society", "Population");
+    c.population.number = parseNumber(assignOrNull(countryJSON, "People and Society", "Population"));
     c.population.lgurban = assignOrNull(countryJSON, "People and Society", "Major urban areas - population");
     c.population.youngest = assignOrNull(countryJSON, "People and Society", "Age structure", "0-14 years");
     c.population.oldest = assignOrNull(countryJSON, "People and Society", "Age structure", "65 years and over");
@@ -64,12 +64,6 @@ fs.readdir(baseDir, (err, files) => {
     });
     console.log(Object.keys(countryIndex).length + " countries loaded.");
 });
-
-setTimeout(function() {
-//    console.log(countryIndex.cc);
-//    testAllData();
-}, 2000);
-
 
 // Test for and assign a 2- or 3-deep nested JSON property... or null:
 function assignOrNull(root, key1, key2, key3) {
@@ -109,7 +103,6 @@ function testAllData() {
         "popnum": 0
     };
     for (var key in countryIndex) {
-        console.log(key);
         if (countryIndex.hasOwnProperty(key)) {
             try {
                 var cdata = countryIndex[key];
@@ -146,12 +139,21 @@ function testAllData() {
 function parseNumber(text, prefix = '', suffix = '') {
     // Find numerical sequence using regex:
     var re = new RegExp("(?:" + prefix + ")" + "[\\s]*([0-9\\.,])+[\\s]*" + "(?:" + suffix + ")");
-//    console.log(re);
-    var foundNum = re.exec(text)[0];
-//    console.log("Found:", foundNum);
-    // Strip commas & parseFloat it:
-    return parseFloat(foundNum.replace(',', ''));
+    //console.log(re);
+    try {
+        var foundNum = re.exec(text)[0];
+        //console.log("Found:", foundNum);
+        // Strip commas:
+        var commas = /,/g
+        var rawNum = foundNum.replace(commas, '');
+        // parseFloat it:
+        return parseFloat(rawNum);
+    } catch (e) {
+        console.log(text, e);
+        return 0;
+    }
 }
+// Test cases:
 console.log("Area:", parseNumber("29,743 sq km", "", "sq km"));
 console.log("Low:", parseNumber("lowest point: Debed River 400 m", "", "m"));
 console.log("High:", parseNumber("highest point: Aragats Lerrnagagat' 4,090 m", "", "m"));
@@ -159,3 +161,72 @@ console.log("Pop:", parseNumber("3,051,250 (July 2016 est.)"));
 console.log("Births:", parseNumber("13.3 births/1,000 population (2016 est.)"));
 console.log("Percent:", parseNumber("13.3%", "", "%"));
 console.log("Largest Urban:", parseNumber("THE VALLEY (capital) 1,000 (2014)", "", ""));
+
+
+// Define a player:
+class Player {
+    constructor(name) {
+        this.name = name;
+        this.wins = 0;
+        this.cards = [];
+    }
+}
+
+
+// Define a card:
+class Card {
+    constructor(name) {
+        this.name = name;
+    }
+}
+
+
+// Compare an array of cards on a property and return winner:
+function compareCards(cards, prop) {
+    cards.forEach(card => {
+        console.log(card.name, fetchFromObject(card, prop));
+    });
+    // Pick winner:
+    var highest = cards.reduce((a,b) => {
+        return (fetchFromObject(a, prop) > fetchFromObject(b, prop)) ? a : b;
+    });
+    var lowest = cards.reduce((a,b) => {
+        return (a < b) ? a : b;
+    });
+    console.log(highest.name, "wins with", fetchFromObject(highest, prop));
+    return;
+}
+
+
+// Can fetch a deeply-nested property e.g. fetchFromObject(country, "transport.roads.paved")
+function fetchFromObject(obj, prop) {
+    if(typeof obj === 'undefined') {
+        return false;
+    }
+    var _index = prop.indexOf('.');
+    if(_index > -1) {
+        return fetchFromObject(obj[prop.substring(0, _index)], prop.substr(_index + 1));
+    }
+    return obj[prop];
+}
+
+
+setTimeout(function() {
+//    testAllData();
+    var bill = new Player("Bill");
+    var ben = new Player("Ben");
+    bill.cards = ['be','nl','lu'];
+    ben.cards = ['us','ch','rs'];
+    console.log(bill);
+    console.log(ben);
+
+    var cards = [
+        countryIndex.be,
+        countryIndex.lu,
+        countryIndex.rs,
+        countryIndex.uk,
+    ];
+    console.log(cards);
+    compareCards(cards, 'population.number');
+
+}, 1500);   // Wait for countries to load first
