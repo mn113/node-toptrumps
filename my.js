@@ -5,65 +5,101 @@ const path = require('path');
 
 var baseDir = 'factbook_all/';
 
-function getStats(country) {
-    // open file
-    var countryJSON = JSON.parse(fs.readFileSync(baseDir + country +'.json', 'utf8'));
+// Define a card:
+class Card {
+    constructor(countryCode) {
+        // open file
+        var countryJSON = JSON.parse(fs.readFileSync(baseDir + countryCode +'.json', 'utf8'));
+        // Extract individual data pieces and store in my own structured object:
+        this.name = assignOrNull(countryJSON, "Government", "Country name", "conventional short form");
+        // Account for name aberrations:
+        if (!this.name) { this.name = assignOrNull(countryJSON, "Government", "Country name", "Dutch short form"); }
+        this.capital = {};
+        this.capital.coords = assignOrNull(countryJSON, "Government", "Capital", "geographic coordinates");
+        // Extract the lat and long values from coordinate string (also absolutify them):
+        var coords = this.capital.coords ? this.capital.coords.split(" ") : null;
+        this.capital.lat = coords ? Math.abs(coords[0] + coords[1]/60) : null;
+        this.capital.long = coords ? Math.abs(coords[3] + coords[4]/60) : null;
+        this.area = {};
+        this.area.total = parseNumber(assignOrNull(countryJSON, "Geography", "Area", "total"), "", "sq km");
+        this.area.land = parseNumber(assignOrNull(countryJSON, "Geography", "Area", "land"), "", "sq km");
+        this.area.water = parseNumber(assignOrNull(countryJSON, "Geography", "Area", "water"), "", "sq km");
+        this.elevation = {};
+        this.elevation.mean = parseNumber(assignOrNull(countryJSON, "Geography", "Elevation", "mean elevation"), "", "m");
+        this.elevation.lowest = parseNumber(assignOrNull(countryJSON, "Geography", "Elevation", "elevation extremes"), "", "m");
+        this.borders = {};
+        this.borders.land = parseNumber(assignOrNull(countryJSON, "Geography", "Land boundaries", "total"), "", "km");
+        this.borders.coast =  parseNumber(assignOrNull(countryJSON, "Geography", "Coastline"), "", "km");
+        this.borders.list = assignOrNull(countryJSON, "Geography", "Land boundaries", "border countries");
+        // Split and count the comma-separated list of neighbours, or use zero:
+        this.borders.number = this.borders.list ? this.borders.list.split(',').length : 0;
+        this.transport = {};
+        this.transport.road = parseNumber(assignOrNull(countryJSON, "Transportation", "Roadways", "total"), "", "km");
+        this.transport.rail = parseNumber(assignOrNull(countryJSON, "Transportation", "Railways", "total"), "", "km");
+        this.transport.water = parseNumber(assignOrNull(countryJSON, "Transportation", "Waterways"), "", "km");
+        this.gdp = {};
+        this.gdp.net = parseNumber(assignOrNull(countryJSON, "Economy", "GDP (official exchange rate)"), "$", "");
+        this.gdp.percapita = parseNumber(assignOrNull(countryJSON, "Economy", "GDP - per capita (PPP)"), "$", "");
+        this.population = {};
+        this.population.number = parseNumber(assignOrNull(countryJSON, "People and Society", "Population"));
+        this.population.lgurban = parseNumber(assignOrNull(countryJSON, "People and Society", "Major urban areas - population"), "", "");
+        this.population.youngest = parseNumber(assignOrNull(countryJSON, "People and Society", "Age structure", "0-14 years"), "", "%");
+        this.population.oldest = parseNumber(assignOrNull(countryJSON, "People and Society", "Age structure", "65 years and over"), "", "%");
+        this.population.medage = parseNumber(assignOrNull(countryJSON, "People and Society", "Median age", "total"));
+        this.population.births = parseNumber(assignOrNull(countryJSON, "People and Society", "Birth rate"), "", "%");
+        this.population.lifexp = parseNumber(assignOrNull(countryJSON, "People and Society", "Life expectancy at birth", "total population"));
+        // Calculate density manually:
+        this.population.density = this.population.number / this.area.total;
 
-    // Extract individual data pieces and store in my own structured object:
-    var c = {};
-    c.name = assignOrNull(countryJSON, "Government", "Country name", "conventional short form");
-    // Account for name aberrations:
-    if (!c.name) { c.name = assignOrNull(countryJSON, "Government", "Country name", "Dutch short form"); }
-    c.capital = {};
-    c.capital.string = assignOrNull(countryJSON, "Government", "Capital", "geographic coordinates");
-    // Extract the lat and long values from coordinate string:
-    c.capital.lat = c.capital.string ? Math.abs(c.capital.string.split(" ")[0] + c.capital.string.split(" ")[1]/60) : null;
-    c.capital.long = c.capital.string ? Math.abs(c.capital.string.split(" ")[3] + c.capital.string.split(" ")[4]/60) : null;
-    c.area = {};
-    c.area.total = assignOrNull(countryJSON, "Geography", "Area", "total");
-    c.area.land = assignOrNull(countryJSON, "Geography", "Area", "land");
-    c.area.water = assignOrNull(countryJSON, "Geography", "Area", "water");
-    c.elevation = {};
-    c.elevation.mean = assignOrNull(countryJSON, "Geography", "Elevation", "mean elevation");
-    c.elevation.lowest = assignOrNull(countryJSON, "Geography", "Elevation", "elevation extremes");
-    c.borders = {};
-    c.borders.land = assignOrNull(countryJSON, "Geography", "Land boundaries", "total");
-    c.borders.coast =  assignOrNull(countryJSON, "Geography", "Coastline");
-    c.borders.number = assignOrNull(countryJSON, "Geography", "Land boundaries", "border countries");
-    // Split and count the comma-separated list of neighbours, or use zero:
-    c.borders.number = c.borders.number ? c.borders.number.split(',').length : 0;
-    c.transport = {};
-    c.transport.road = assignOrNull(countryJSON, "Transportation", "Roadways", "total");
-    c.transport.rail = assignOrNull(countryJSON, "Transportation", "Railways", "total");
-    c.transport.water = assignOrNull(countryJSON, "Transportation", "Waterways");
-    c.gdp = {};
-    c.gdp.net = assignOrNull(countryJSON, "Economy", "GDP (official exchange rate)");
-    c.gdp.percapita = assignOrNull(countryJSON, "Economy", "GDP - per capita (PPP)");
-    c.population = {};
-    c.population.number = parseNumber(assignOrNull(countryJSON, "People and Society", "Population"));
-    c.population.lgurban = assignOrNull(countryJSON, "People and Society", "Major urban areas - population");
-    c.population.youngest = assignOrNull(countryJSON, "People and Society", "Age structure", "0-14 years");
-    c.population.oldest = assignOrNull(countryJSON, "People and Society", "Age structure", "65 years and over");
-    c.population.medage = assignOrNull(countryJSON, "People and Society", "Median age", "total");
-    c.population.births = assignOrNull(countryJSON, "People and Society", "Birth rate");
-    c.population.lifexp = assignOrNull(countryJSON, "People and Society", "Life expectancy at birth", "total population");
-    // Calculate density manually:
-    c.population.density = c.population.number / c.area.total;
+        // Register in Deck
+    }
+    // Methods:
 
-    return c;
 }
 
 
-// Build main data object:
-var countryIndex = {};
-fs.readdir(baseDir, (err, files) => {
-    files.forEach(file => {
-        var c = path.parse(file).name;
-//        console.log("Loading", c);
-        countryIndex[c] = getStats(c);
-    });
-    console.log(Object.keys(countryIndex).length + " countries loaded.");
-});
+// Define a deck:
+class Deck {
+    constructor() {
+        this.cards = [];
+    }
+
+    get cards() {
+        return this.cards;
+    }
+
+    addCard(Card card) {
+        this.cards.push(card);
+    }
+
+    getNextCard() {
+        return this.cards.unshift();
+    }
+
+    // Randomize array element order in-place (using Durstenfeld shuffle algorithm):
+    shuffle() {
+        for (var i = this.cards.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var temp = this.cards[i];
+            this.cards[i] = this.cards[j];
+            this.cards[j] = temp;
+        }
+    }
+
+    //deal() {
+    //}
+}
+
+
+// Define a player:
+class Player {
+    constructor(name) {
+        this.name = name;
+        this.wins = 0;
+        this.cards = [];
+    }
+}
+
 
 // Test for and assign a 2- or 3-deep nested JSON property... or null:
 function assignOrNull(root, key1, key2, key3) {
@@ -144,7 +180,7 @@ function parseNumber(text, prefix = '', suffix = '') {
         var foundNum = re.exec(text)[0];
         //console.log("Found:", foundNum);
         // Strip commas:
-        var commas = /,/g
+        var commas = /,/g;
         var rawNum = foundNum.replace(commas, '');
         // parseFloat it:
         return parseFloat(rawNum);
@@ -154,32 +190,15 @@ function parseNumber(text, prefix = '', suffix = '') {
     }
 }
 // Test cases:
-console.log("Area:", parseNumber("29,743 sq km", "", "sq km"));
-console.log("Low:", parseNumber("lowest point: Debed River 400 m", "", "m"));
-console.log("High:", parseNumber("highest point: Aragats Lerrnagagat' 4,090 m", "", "m"));
-console.log("Pop:", parseNumber("3,051,250 (July 2016 est.)"));
-console.log("Births:", parseNumber("13.3 births/1,000 population (2016 est.)"));
-console.log("Percent:", parseNumber("13.3%", "", "%"));
-console.log("Largest Urban:", parseNumber("THE VALLEY (capital) 1,000 (2014)", "", ""));
-
-
-// Define a player:
-class Player {
-    constructor(name) {
-        this.name = name;
-        this.wins = 0;
-        this.cards = [];
-    }
+{
+    console.log("Area:", parseNumber("29,743 sq km", "", "sq km"));
+    console.log("Low:", parseNumber("lowest point: Debed River 400 m", "", "m"));
+    console.log("High:", parseNumber("highest point: Aragats Lerrnagagat' 4,090 m", "", "m"));
+    console.log("Pop:", parseNumber("3,051,250 (July 2016 est.)"));
+    console.log("Births:", parseNumber("13.3 births/1,000 population (2016 est.)"));
+    console.log("Percent:", parseNumber("13.3%", "", "%"));
+    console.log("Largest Urban:", parseNumber("THE VALLEY (capital) 1,000 (2014)", "", ""));
 }
-
-
-// Define a card:
-class Card {
-    constructor(name) {
-        this.name = name;
-    }
-}
-
 
 // Compare an array of cards on a property and return winner:
 function compareCards(cards, prop) {
@@ -190,9 +209,9 @@ function compareCards(cards, prop) {
     var highest = cards.reduce((a,b) => {
         return (fetchFromObject(a, prop) > fetchFromObject(b, prop)) ? a : b;
     });
-    var lowest = cards.reduce((a,b) => {
-        return (a < b) ? a : b;
-    });
+    //var lowest = cards.reduce((a,b) => {
+    //    return (a < b) ? a : b;
+    //});
     console.log(highest.name, "wins with", fetchFromObject(highest, prop));
     return;
 }
@@ -209,6 +228,18 @@ function fetchFromObject(obj, prop) {
     }
     return obj[prop];
 }
+
+
+// Build main data object:
+var countryIndex = {};
+fs.readdir(baseDir, (err, files) => {
+    files.forEach(file => {
+        var c = path.parse(file).name;
+        console.log("Loading", c);
+        countryIndex[c] = new Card(c);
+    });
+    console.log(Object.keys(countryIndex).length + " countries loaded.");
+});
 
 
 setTimeout(function() {
