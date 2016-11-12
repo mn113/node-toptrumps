@@ -1,9 +1,7 @@
 // begin
-
 const fs = require('fs');
 const path = require('path');
-
-var baseDir = 'factbook_all/';
+const baseDir = 'factbook_all/';
 
 // Define a card:
 class Card {
@@ -64,16 +62,20 @@ class Deck {
         this.cards = [];
     }
 
-    get cards() {
+    /*get cards() {
         return this.cards;
     }
 
-    addCard(Card card) {
+    set cards(newCards) {
+        this.cards = newCards;
+    }
+    */
+    addCard(card) {
         this.cards.push(card);
     }
 
     getNextCard() {
-        return this.cards.unshift();
+        return this.cards.shift();
     }
 
     // Randomize array element order in-place (using Durstenfeld shuffle algorithm):
@@ -86,8 +88,18 @@ class Deck {
         }
     }
 
-    //deal() {
-    //}
+    // Deal x cards to each of y players:
+    dealCards(playerList, number) {
+        var players = playerList.length,
+            toDeal = players * number;
+        for (var i = 0; i < toDeal; i++) {
+            // Deal 1 card to each player and loop back around:
+            var j = i % players;
+            playerList[j].receiveCard(this.getNextCard());
+            // Out of cards?:
+            if (this.cards.length === 0) { break; }
+        }
+    }
 }
 
 
@@ -98,33 +110,17 @@ class Player {
         this.wins = 0;
         this.cards = [];
     }
-}
 
-
-// Test for and assign a 2- or 3-deep nested JSON property... or null:
-function assignOrNull(root, key1, key2, key3) {
-    try {
-        // Key1 should always exist. Key2 may or may not.
-        if (root[key1] && root[key1][key2]) {
-            // Key3 is optional
-            if (key3) {
-                if (root[key1][key2][key3]) {
-                    if (root[key1][key2][key3].text && typeof root[key1][key2][key3].text !== "undefined") {
-                        return root[key1][key2][key3].text;
-                    }
-                }
-            }
-            // Just 2 keys:
-            else {
-                if (root[key1][key2].text && typeof root[key1][key2].text !== "undefined") {
-                    return root[key1][key2].text;
-                }
-            }
-        }
-        return null;
+    receiveCard(card) {
+        this.cards.push(card);
     }
-    catch (e) {
-        return null;
+
+    playCard() {
+        return this.cards.shift();
+    }
+
+    status() {
+        console.log(this.name, this.wins, this.cards.length, this.cards[0].name);
     }
 }
 
@@ -170,6 +166,32 @@ function testAllData() {
     console.log("Errors:", errors);
 }
 
+// Test for and assign a 2- or 3-deep nested JSON property... or null:
+function assignOrNull(root, key1, key2, key3) {
+    try {
+        // Key1 should always exist. Key2 may or may not.
+        if (root[key1] && root[key1][key2]) {
+            // Key3 is optional
+            if (key3) {
+                if (root[key1][key2][key3]) {
+                    if (root[key1][key2][key3].text && typeof root[key1][key2][key3].text !== "undefined") {
+                        return root[key1][key2][key3].text;
+                    }
+                }
+            }
+            // Just 2 keys:
+            else {
+                if (root[key1][key2].text && typeof root[key1][key2].text !== "undefined") {
+                    return root[key1][key2].text;
+                }
+            }
+        }
+        return null;
+    }
+    catch (e) {
+        return null;
+    }
+}
 
 // Parse complex numerical values out of a text string:
 function parseNumber(text, prefix = '', suffix = '') {
@@ -200,23 +222,6 @@ function parseNumber(text, prefix = '', suffix = '') {
     console.log("Largest Urban:", parseNumber("THE VALLEY (capital) 1,000 (2014)", "", ""));
 }
 
-// Compare an array of cards on a property and return winner:
-function compareCards(cards, prop) {
-    cards.forEach(card => {
-        console.log(card.name, fetchFromObject(card, prop));
-    });
-    // Pick winner:
-    var highest = cards.reduce((a,b) => {
-        return (fetchFromObject(a, prop) > fetchFromObject(b, prop)) ? a : b;
-    });
-    //var lowest = cards.reduce((a,b) => {
-    //    return (a < b) ? a : b;
-    //});
-    console.log(highest.name, "wins with", fetchFromObject(highest, prop));
-    return;
-}
-
-
 // Can fetch a deeply-nested property e.g. fetchFromObject(country, "transport.roads.paved")
 function fetchFromObject(obj, prop) {
     if(typeof obj === 'undefined') {
@@ -229,14 +234,66 @@ function fetchFromObject(obj, prop) {
     return obj[prop];
 }
 
+// Compare an array of cards on a property and return winner:
+function compareCards(cards, prop) {
+    cards.forEach(card => {
+        console.log(card.name, fetchFromObject(card, prop));
+    });
+    // Pick winner:
+    var highest = cards.reduce((a,b) => {
+        // Test for nulls:
+        if (fetchFromObject(a, prop) === null) {
+            return b;
+        }
+        else if (fetchFromObject(b, prop) === null) {
+            return a;
+        }
+        // No nulls, compare values:
+        return (fetchFromObject(a, prop) > fetchFromObject(b, prop)) ? a : b;
+    });
+    //var lowest = cards.reduce((a,b) => {
+    //    return (a < b) ? a : b;
+    //});
+    console.log(highest.name, "wins with", fetchFromObject(highest, prop));
+    return highest;
+}
+
+//
+function playRound(playerList, category) {
+    // somebody must choose a category first
+    if (typeof category === "undefined") {
+        category = "population.number";
+    }
+
+    // Players play their cards into the "pot":
+    var roundCards = [];
+    playerList.forEach(player => {
+        roundCards.push(player.playCard());
+    });
+
+    // Compare cards:
+    var winningCard = compareCards(roundCards, category),
+        windex = roundCards.indexOf(winningCard),
+        winningPlayer = playerList[windex];
+    console.log(winningPlayer.name, "won with", winningCard.name);
+
+    // Reassign all played cards to winner:
+    roundCards.forEach(card => {
+        winningPlayer.receiveCard(card);
+    });
+}
+
 
 // Build main data object:
-var countryIndex = {};
+var countryIndex = {};  // old
+var deck = new Deck();  // new
 fs.readdir(baseDir, (err, files) => {
     files.forEach(file => {
         var c = path.parse(file).name;
         console.log("Loading", c);
-        countryIndex[c] = new Card(c);
+        var card = new Card(c);
+        countryIndex[c] = card;
+        deck.addCard(card);
     });
     console.log(Object.keys(countryIndex).length + " countries loaded.");
 });
@@ -244,20 +301,27 @@ fs.readdir(baseDir, (err, files) => {
 
 setTimeout(function() {
 //    testAllData();
+
+    deck.shuffle();
+    console.log("Top card:", deck.cards[0].name);
+
     var bill = new Player("Bill");
     var ben = new Player("Ben");
-    bill.cards = ['be','nl','lu'];
-    ben.cards = ['us','ch','rs'];
-    console.log(bill);
-    console.log(ben);
+    var players = [bill, ben];
 
-    var cards = [
-        countryIndex.be,
-        countryIndex.lu,
-        countryIndex.rs,
-        countryIndex.uk,
-    ];
-    console.log(cards);
-    compareCards(cards, 'population.number');
+    deck.dealCards(players, 20);
+    console.log("Top card:", deck.cards[0].name);
+
+    bill.status();
+    ben.status();
+
+    var r = 5;
+    while (r > 0) {
+        playRound(players, 'area.total');
+        bill.status();
+        ben.status();
+        r--;
+    }
+//    compareCards([ben.playCard(), bill.playCard()], 'population.number');
 
 }, 1500);   // Wait for countries to load first
