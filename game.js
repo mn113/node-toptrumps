@@ -17,9 +17,22 @@ class Card {
         this.capital = {};
         this.capital.coords = assignOrNull(countryJSON, "Government", "Capital", "geographic coordinates");
         // Extract the lat and long values from coordinate string (also absolutify them):
-        var coords = this.capital.coords ? this.capital.coords.split(" ") : null;
-        this.capital.lat = coords ? Math.abs(coords[0] + coords[1]/60) : null;
-        this.capital.long = coords ? Math.abs(coords[3] + coords[4]/60) : null;
+        var coords = this.capital.coords ? this.capital.coords.split(",") : null;   // length 2
+        if (coords !== null) {
+            var lat = coords[0].trim().split(/\s/);  // length 3
+            var long = coords[1].trim().split(/\s/); // length 3
+            this.capital.lat = Math.abs(parseNumber(lat[0]) + parseNumber(lat[1])/60.0);
+            this.capital.latsign = lat[2];
+            this.capital.long = Math.abs(parseNumber(long[0]) + parseNumber(long[1])/60.0);
+            this.capital.longsign = long[2];
+            //console.log(countryCode, this.capital.lat, this.capital.latsign);
+        }
+        else {
+            this.capital.lat = null;
+            this.capital.latsign = null;
+            this.capital.long = null;
+            this.capital.longsign = null;
+        }
         this.area = {};
         this.area.total = parseNumber(assignOrNull(countryJSON, "Geography", "Area", "total"), "", "sq km");
         this.area.land = parseNumber(assignOrNull(countryJSON, "Geography", "Area", "land"), "", "sq km");
@@ -43,11 +56,11 @@ class Card {
         this.population = {};
         this.population.number = parseNumber(assignOrNull(countryJSON, "People and Society", "Population"));
         this.population.lgurban = parseNumber(assignOrNull(countryJSON, "People and Society", "Major urban areas - population"), "", "");
+        this.population.lifexp = parseNumber(assignOrNull(countryJSON, "People and Society", "Life expectancy at birth", "total population"));
         this.population.youngest = parseNumber(assignOrNull(countryJSON, "People and Society", "Age structure", "0-14 years"), "", "%");
         this.population.oldest = parseNumber(assignOrNull(countryJSON, "People and Society", "Age structure", "65 years and over"), "", "%");
         this.population.medage = parseNumber(assignOrNull(countryJSON, "People and Society", "Median age", "total"));
-        this.population.births = parseNumber(assignOrNull(countryJSON, "People and Society", "Birth rate"), "", "%");
-        this.population.lifexp = parseNumber(assignOrNull(countryJSON, "People and Society", "Life expectancy at birth", "total population"));
+        //this.population.births = parseNumber(assignOrNull(countryJSON, "People and Society", "Birth rate"), "", "%");
         // Calculate density manually:
         this.population.density = this.population.number / this.area.total;
 

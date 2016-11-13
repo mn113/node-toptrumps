@@ -4,13 +4,13 @@ var socket = io();
 function renderCountry(cdata) {
     var $card = $(".card");
     $card.find('h3').html(cdata.name);
-    $card.find('button[name="population.number"] span').html(cdata.population.number);
-    $card.find('button[name="population.density"] span').html(cdata.population.density);
-    $card.find('button[name="capital.lat"] span').html(cdata.capital.lat);
-    $card.find('button[name="capital.long"] span').html(cdata.capital.long);
-    $card.find('button[name="area.total"] span').html(cdata.area.total);
-    $card.find('button[name="area.land"] span').html(cdata.area.land);
-    $card.find('button[name="area.water"] span').html(cdata.area.water);
+    $card.find('button[name="population.number"] span').html(formatNumber(cdata.population.number));
+    $card.find('button[name="population.density"] span').html(formatNumber(cdata.population.density, 'density'));
+    $card.find('button[name="capital.lat"] span').html(formatNumber(cdata.capital.lat, 'degrees') + cdata.capital.latsign);
+    $card.find('button[name="capital.long"] span').html(formatNumber(cdata.capital.long, 'degrees') + cdata.capital.longsign);
+    $card.find('button[name="area.total"] span').html(formatNumber(cdata.area.total, 'area'));
+    $card.find('button[name="area.land"] span').html(formatNumber(cdata.area.land, 'area'));
+    $card.find('button[name="area.water"] span').html(formatNumber(cdata.area.water, 'area'));
 }
 
 function beginYourTurn() {
@@ -41,6 +41,29 @@ function endYourTurn() {
 function pickCategory(cat) {
     // Send decision to socket.io server:
     socket.emit('categoryPicked', cat);
+}
+
+function formatNumber(number, type) {
+    switch (type) {
+        case 'distance':
+            return number.toFixed(0) + 'km';
+        case 'height':
+            return number.toFixed(0) + 'm';
+        case 'area':
+            return number.toFixed(0) + 'km&sup2;';
+        case 'percent':
+            return number.toFixed(1) + '%';
+        case 'money':
+            return '$' + number.toFixed(0) + '%';   // comma-ize?
+        case 'age':
+            return number.toFixed(1) + ' years';
+        case 'density':
+            return number.toFixed(1) + '/km&sup2;';
+        case 'degrees':
+            return number.toFixed(2) + 'º';
+        default:
+            return number.toFixed(0);
+    }
 }
 
 // jQuery ready:
