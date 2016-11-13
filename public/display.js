@@ -4,15 +4,20 @@ var socket = io();
 function renderCountry(cdata) {
     var $card = $(".card");
     $card.find('h3').html(cdata.name);
-    $card.find('button[name="population.number"]').html(cdata.population.number);
-    $card.find('button[name="density"]').html(cdata.density);
+    $card.find('button[name="population.number"] span').html(cdata.population.number);
+    $card.find('button[name="population.density"] span').html(cdata.population.density);
+    $card.find('button[name="capital.lat"] span').html(cdata.capital.lat);
+    $card.find('button[name="capital.long"] span').html(cdata.capital.long);
+    $card.find('button[name="area.total"] span').html(cdata.area.total);
+    $card.find('button[name="area.land"] span').html(cdata.area.land);
+    $card.find('button[name="area.water"] span').html(cdata.area.water);
 }
 
 function beginYourTurn() {
     // Enable buttons
     $(".card button").prop( "disabled", false );
     // Message and timer:
-    $(".card > span").show();
+    $(".msg").show();
     var seconds = 4;
     var countdown = setInterval(function() {
         seconds--;
@@ -27,10 +32,10 @@ function beginYourTurn() {
 
 function endYourTurn() {
     // Hide message & disable buttons:
-    $(".card > span").hide();
+    $(".msg").hide();
     $(".card button").prop( "disabled", true );
     // Default category:
-    pickCategory('population.number');
+    pickCategory('population.number');  // RANDOMISE
 }
 
 function pickCategory(cat) {

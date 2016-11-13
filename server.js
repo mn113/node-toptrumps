@@ -15,6 +15,9 @@ app.get('/', function(request, response) {
 // Socket.io:
 io.on('connection', function(socket){
 
+    console.log(socket);
+    socket.player = new game.Player("Joe");
+
     // Log connections made/dropped:
     console.log('a user connected');
     socket.on('disconnect', function(){
@@ -24,7 +27,7 @@ io.on('connection', function(socket){
     socket.on('categoryPicked', function(cat){
         console.log('category:', cat);
         // Talk back:
-        io.emit('yourCard', game.ben.status);
+        io.emit('yourCard', JSON.stringify(game.theDeck.getNextCard()));
     });
 });
 

@@ -332,17 +332,17 @@ class Gameloop {
 
 
 // Build main data object:
-var countryIndex = {};  // old
-var deck = new Deck();  // new
+//var countryIndex = {};  // old
+var theDeck = new Deck();  // new
 fs.readdir(baseDir, (err, files) => {
     files.forEach(file => {
         var c = path.parse(file).name;
-        console.log("Loading", c);
+        //console.log("Loading", c);
         var card = new Card(c);
-        countryIndex[c] = card;
-        deck.addCard(card);
+        //countryIndex[c] = card;
+        theDeck.addCard(card);
     });
-    console.log(Object.keys(countryIndex).length + " countries loaded.");
+    console.log(theDeck.cards.length + " countries loaded.");
 });
 
 
@@ -350,15 +350,15 @@ var bill = new Player("Bill");
 var ben = new Player("Ben");
 var players = [bill, ben];
 
-
+/*
 setTimeout(function() {
 //    testAllData();
 
-    deck.shuffle();
-    console.log("Top card:", deck.cards[0].name);
+    theDeck.shuffle();
+    console.log("Top card:", theDeck.cards[0].name);
 
-    deck.dealCards(players, 20);
-    console.log("Top card:", deck.cards[0].name);
+    theDeck.dealCards(players, 20);
+    console.log("Top card:", theDeck.cards[0].name);
 
     bill.status();
     ben.status();
@@ -372,7 +372,7 @@ setTimeout(function() {
     }
 
 }, 1500);   // Wait for countries to load first
-
+*/
 
 /**
  * Expose ``.
@@ -382,6 +382,8 @@ module.exports = {
     Player: Player,
     Card: Card,
     Deck: Deck,
+    theDeck: theDeck,
     playRound: playRound,
-    ben: ben
+    ben: ben,
+    bill: bill
 };

@@ -15,6 +15,8 @@
 </head>
 <body>
     <section id="main" class=".container-fluid">
+        <div class="msg">Your turn! Choose a category...<span id="countdown"></span></div>
+
         <h1>Top Trumps</h1>
 
         <h2>Players</h2>
@@ -31,10 +33,14 @@
 
         <h2>Your next card</h2>
         <div class="card" data-is-your-turn="false">
-            <span>Your turn! Choose a category...<span id="countdown"></span></span>
             <h3>Country</h3>
-            <button type="submit" name="population.number">Population: 1,234,567</button>
-            <button type="submit" name="density">Density: 10</button>
+            <button type="submit" name="population.number">Population: <span></span></button>
+            <button type="submit" name="population.density">Density: <span></span></button>
+            <button type="submit" name="capital.lat">Latitude: <span></span></button>
+            <button type="submit" name="capital.long">Longitude: <span></span></button>
+            <button type="submit" name="area.total">Total area: <span></span></button>
+            <button type="submit" name="area.land">Land area: <span></span></button>
+            <button type="submit" name="area.water">Water area: <span></span></button>
         </div>
     </section>
 
