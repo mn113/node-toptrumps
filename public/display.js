@@ -4,13 +4,30 @@ var socket = io();
 function renderCountry(cdata) {
     var $card = $(".card");
     $card.find('h3').html(cdata.name);
-    $card.find('button[name="population.number"] span').html(formatNumber(cdata.population.number));
-    $card.find('button[name="population.density"] span').html(formatNumber(cdata.population.density, 'density'));
+    $card.find('h4:first-of-type span').html(cdata.capital.name);
     $card.find('button[name="capital.lat"] span').html(formatNumber(cdata.capital.lat, 'degrees') + cdata.capital.latsign);
     $card.find('button[name="capital.long"] span').html(formatNumber(cdata.capital.long, 'degrees') + cdata.capital.longsign);
     $card.find('button[name="area.total"] span').html(formatNumber(cdata.area.total, 'area'));
     $card.find('button[name="area.land"] span').html(formatNumber(cdata.area.land, 'area'));
     $card.find('button[name="area.water"] span').html(formatNumber(cdata.area.water, 'area'));
+    $card.find('button[name="elevation.highest"] span').html(formatNumber(cdata.elevation.highest, 'height'));
+    $card.find('button[name="elevation.lowest"] span').html(formatNumber(cdata.elevation.lowest, 'height'));
+    $card.find('button[name="elevation.mean"] span').html(formatNumber(cdata.elevation.mean, 'height'));
+    $card.find('button[name="borders.land"] span').html(formatNumber(cdata.borders.land, 'distance'));
+    $card.find('button[name="borders.coast"] span').html(formatNumber(cdata.borders.coast, 'distance'));
+    $card.find('button[name="borders.number"] span').html(cdata.borders.number +'('+ cdata.borders.list +')');
+    $card.find('button[name="transport.road"] span').html(formatNumber(cdata.transport.road, 'distance'));
+    $card.find('button[name="transport.rail"] span').html(formatNumber(cdata.transport.rail, 'distance'));
+    $card.find('button[name="transport.water"] span').html(formatNumber(cdata.transport.water, 'distance'));
+    $card.find('button[name="gdp.net"] span').html(formatNumber(cdata.gdp.net, 'money'));
+    $card.find('button[name="gdp.percapita"] span').html(formatNumber(cdata.gdp.percapita, 'money'));
+    $card.find('button[name="population.number"] span').html(formatNumber(cdata.population.number));
+    $card.find('button[name="population.density"] span').html(formatNumber(cdata.population.density, 'density'));
+    $card.find('button[name="population.lgurban"] span').html(formatNumber(cdata.population.lgurban));
+    $card.find('button[name="population.lifexp"] span').html(formatNumber(cdata.population.lifexp, 'age'));
+    $card.find('button[name="population.youngest"] span').html(formatNumber(cdata.population.youngest, 'age'));
+    $card.find('button[name="population.oldest"] span').html(formatNumber(cdata.population.oldest, 'age'));
+    $card.find('button[name="population.medage"] span').html(formatNumber(cdata.population.medage, 'age'));
 }
 
 function beginYourTurn() {
@@ -44,6 +61,9 @@ function pickCategory(cat) {
 }
 
 function formatNumber(number, type) {
+    if (number === null) {
+        return "unknown";
+    }
     switch (type) {
         case 'distance':
             return number.toFixed(0) + 'km';

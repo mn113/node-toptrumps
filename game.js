@@ -8,6 +8,7 @@ const baseDir = 'factbook_all/';
 // Define a card:
 class Card {
     constructor(countryCode) {
+        this.code = countryCode;
         // open file
         var countryJSON = JSON.parse(fs.readFileSync(baseDir + countryCode +'.json', 'utf8'));
         // Extract individual data pieces and store in my own structured object:
@@ -15,17 +16,23 @@ class Card {
         // Account for name aberrations:
         if (!this.name) { this.name = assignOrNull(countryJSON, "Government", "Country name", "Dutch short form"); }
         this.capital = {};
+        this.capital.name = assignOrNull(countryJSON, "Government", "Capital", "name");
         this.capital.coords = assignOrNull(countryJSON, "Government", "Capital", "geographic coordinates");
         // Extract the lat and long values from coordinate string (also absolutify them):
         var coords = this.capital.coords ? this.capital.coords.split(",") : null;   // length 2
         if (coords !== null) {
-            var lat = coords[0].trim().split(/\s/);  // length 3
-            var long = coords[1].trim().split(/\s/); // length 3
-            this.capital.lat = Math.abs(parseNumber(lat[0]) + parseNumber(lat[1])/60.0);
-            this.capital.latsign = lat[2];
-            this.capital.long = Math.abs(parseNumber(long[0]) + parseNumber(long[1])/60.0);
-            this.capital.longsign = long[2];
-            //console.log(countryCode, this.capital.lat, this.capital.latsign);
+            try {
+                var lat = coords[0].trim().split(/\s/);  // length 3
+                var long = coords[1].trim().split(/\s/); // length 3
+                this.capital.lat = Math.abs(parseNumber(lat[0]) + parseNumber(lat[1])/60.0);
+                this.capital.latsign = lat[2];
+                this.capital.long = Math.abs(parseNumber(long[0]) + parseNumber(long[1])/60.0);
+                this.capital.longsign = long[2];
+                //console.log(countryCode, this.capital.lat, this.capital.latsign);
+            }
+            catch (e) {
+                console.log(countryCode, e);
+            }
         }
         else {
             this.capital.lat = null;
@@ -39,7 +46,21 @@ class Card {
         this.area.water = parseNumber(assignOrNull(countryJSON, "Geography", "Area", "water"), "", "sq km");
         this.elevation = {};
         this.elevation.mean = parseNumber(assignOrNull(countryJSON, "Geography", "Elevation", "mean elevation"), "", "m");
-        this.elevation.lowest = parseNumber(assignOrNull(countryJSON, "Geography", "Elevation", "elevation extremes"), "", "m");
+        var elevExtremes = assignOrNull(countryJSON, "Geography", "Elevation", "elevation extremes");
+        var elevs = elevExtremes ? elevExtremes.split("++") : null;
+        if (elevs !== null) {
+            try {
+                this.elevation.lowest = parseNumber(elevs[0], "", "m");
+                this.elevation.highest = parseNumber(elevs[1], "", "m");
+            }
+            catch (e) {
+                console.log(countryCode, e);
+            }
+        }
+        else {
+            this.elevation.lowest = null;
+            this.elevation.highest = null;
+        }
         this.borders = {};
         this.borders.land = parseNumber(assignOrNull(countryJSON, "Geography", "Land boundaries", "total"), "", "km");
         this.borders.coast =  parseNumber(assignOrNull(countryJSON, "Geography", "Coastline"), "", "km");
