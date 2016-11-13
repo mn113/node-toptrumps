@@ -3,7 +3,6 @@
 // begin
 const fs = require('fs');
 const path = require('path');
-const baseDir = 'factbook_all/';
 
 // Define a card:
 class Card {
@@ -292,31 +291,6 @@ function compareCards(cards, prop) {
     return highest;
 }
 
-//
-function playRound(playerList, category) {
-    // somebody must choose a category first
-    if (typeof category === "undefined") {
-        category = "population.number";
-    }
-
-    // Players play their cards into the "pot":
-    var roundCards = [];
-    playerList.forEach(player => {
-        roundCards.push(player.playCard());
-    });
-
-    // Compare cards:
-    var winningCard = compareCards(roundCards, category),
-        windex = roundCards.indexOf(winningCard),
-        winningPlayer = playerList[windex];
-    console.log(winningPlayer.name, "won with", winningCard.name);
-
-    // Reassign all played cards to winner:
-    roundCards.forEach(card => {
-        winningPlayer.receiveCard(card);
-    });
-}
-
 
 class Gameloop {
     constructor () {
@@ -325,47 +299,65 @@ class Gameloop {
         this.playerList = [];
     }
 
-    start() {
+    run() {
         this.running = true;
         while (this.running) {
             this.round++;
-            addWaitingPlayers();
-            announce("Round", this.round, ':');
+            this.addWaitingPlayers();
+            announceGameStage("Round", this.round, ':');
             // Ask for category:
-            announce(activePlayer.name +" to choose category...");
+            announceGameStage(activePlayer.name +" to choose category...");
             wait();
-            announce(activePlayer.name +" chose "+ category);
-            // Loop players:
-            playRound(this.playerList, category);
-
-            // Report statuses:
-            this.playerList.forEach(player => {
-                console.log(player.status);
-            });
-
-            // End condition:
-            if (this.round === 10) {
-                this.running = false;
+            announceGameStage(activePlayer.name +" chose "+ category);
+            // Play ad infinitum:
+            while (this.running && players.length > 1) {
+                // Loop players:
+                this.playRound(this.playerList, category);
+                // End condition:
+                if (this.round === 10) {
+                    this.running = false;
+                }
             }
         }
+    }
+
+    playRound(playerList, category) {
+        // somebody must choose a category first
+        if (typeof category === "undefined") {
+            category = "population.number";
+        }
+
+        // Players play their cards into the "pot":
+        var roundCards = [];
+        playerList.forEach(player => {
+            roundCards.push(player.playCard());
+        });
+
+        // Compare cards:
+        var winningCard = compareCards(roundCards, category),
+            windex = roundCards.indexOf(winningCard),
+            winningPlayer = playerList[windex];
+        console.log(winningPlayer.name, "won with", winningCard.name);
+
+        // Reassign all played cards to winner:
+        roundCards.forEach(card => {
+            winningPlayer.receiveCard(card);
+        });
     }
 
     addWaitingPlayers() {
         announce("Players joined");
     }
 
-    announce(msg) {
-        io.emit('announcement', msg);
+    waitForCategory() {
+
     }
-
 }
-//var GL = new Gameloop();
-//GL.start();
 
 
-// Build main data object:
-//var countryIndex = {};  // old
-var theDeck = new Deck();  // new
+// Build master deck of cards:
+var theDeck = new Deck();
+const baseDir = 'factbook_all/';
 fs.readdir(baseDir, (err, files) => {
     files.forEach(file => {
         var c = path.parse(file).name;
@@ -377,31 +369,15 @@ fs.readdir(baseDir, (err, files) => {
 });
 
 
-var computer = new Player("Computer");
-var bill = new Player("Bill");
-var ben = new Player("Ben");
-var players = [computer, bill, ben];
+var computer = new Player("Computer");  // NEEDS SPECIAL ID
+var players = [computer];
 
 /*
 setTimeout(function() {
-//    testAllData();
-
-    theDeck.shuffle();
-    console.log("Top card:", theDeck.cards[0].name);
 
     theDeck.dealCards(players, 20);
     console.log("Top card:", theDeck.cards[0].name);
 
-    bill.status();
-    ben.status();
-
-    var r = 5;
-    while (r > 0) {
-        playRound(players, 'area.total');
-        bill.status();
-        ben.status();
-        r--;
-    }
 
 }, 1500);   // Wait for countries to load first
 */
@@ -417,7 +393,5 @@ module.exports = {
     Deck: Deck,
     // Vars:
     theDeck: theDeck,
-    players: players,
-    // Functions:
-    playRound: playRound,   // MOVE INTO Gameloop class
+    players: players
 };

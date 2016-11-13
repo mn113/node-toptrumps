@@ -46,3 +46,9 @@ span.win-tot{
 
 .card {
 }
+
+.modal-header,
+.modal-body,
+.modal-footer {
+    text-align: center;
+}

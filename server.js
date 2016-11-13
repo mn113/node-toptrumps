@@ -32,29 +32,44 @@ io.use(sharedsession(session, {
 // Socket.io:
 io.on('connection', function(socket){
 
+    console.log("new connection:", socket.handshake.sessionID);
     // Log connections made:
     //console.log(socket.handshake);
     // Perform duplicate check:
     game.players.forEach(player => {
-        if (player.id === socket.handshake.sessionId) {
+        if (player.id === socket.handshake.sessionID) {
             // Reject player because he's already connected:
+            console.log("rejecting socket with sessionId", socket.handshake.sessionID);
             socket.disconnect(true);
         }
     });
-    // sessionId was unused
-    // Make a new player, add him, and update the game:
-    socket.player = new game.Player("Joe-" + Date.now());   // PROMPT FOR NAME HERE
-    socket.player.id = socket.handshake.sessionId;
-    console.log('a user connected: ' + socket.player.name + " aka socket " + socket.player.id);
-    game.players.push(socket.player);
-    updatePlayerList();
+    //console.log(socket)
+    // sessionId was unused, allow to join:
+    namePrompt(socket.id);
 
     // Connection dropped:
     socket.on('disconnect', function(){
-        console.log('user disconnected: ' + socket.player.name + socket.player.id);
+        console.log('user disconnected');
     });
 
-    // Listen to clients: MOVE INTO GAMELOOP
+    // Listen to clients:
+    socket.on('myNameIs', function(name) {
+        // Make a new player, add him, and update the game:
+        // TODO: check if name exists, and add suffix
+        socket.player = new game.Player(name);
+        socket.player.id = socket.handshake.sessionId;
+        console.log('a user connected: ' + socket.player.name + " aka socket " + socket.player.id);
+        game.players.push(socket.player);
+        updatePlayerList();
+
+        // Start game loop if not yet running:
+        if (typeof game.loop === "undefined") {
+            game.loop = new game.Gameloop();
+            game.loop.run();
+        }
+    });
+
+    // MOVE INTO GAMELOOP
     socket.on('categoryPicked', function(cat){
         console.log('category:', cat);
         // Talk back:
@@ -64,6 +79,11 @@ io.on('connection', function(socket){
 });
 
 // Server -> Client broadcasts
+function namePrompt(socketid) {
+    // Send prompt to this user only:
+    io.to(socketid).emit('namePrompt', null);
+}
+
 function announcePlayer(status) {
     //  Announce joins/leaves
     switch (status) {
@@ -106,9 +126,9 @@ function announceGameStage(type) {
     }
 }
 
-function sendCard() {
+function sendCard(socketid) {
     //  Send out 1 card per player
-    io.emit('yourCard', JSON.stringify(game.theDeck.getNextCard()));
+    io.to(socketid).emit('yourCard', JSON.stringify(game.theDeck.getNextCard()));
 }
 
 http.listen(5000, function() {

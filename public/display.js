@@ -100,6 +100,34 @@ function pickCategory(cat) {
     socket.emit('categoryPicked', cat);
 }
 
+function modalNamePrompt() {
+    $("#modal").load('name_prompt.html', function() {
+        // Once the modal html is loaded, set up its behaviours:
+        $('#namePrompt').modal('show');
+
+        // Q&D field validation:
+        $("#modal").on('change', '.modal-body input', function() {
+            console.log(this);
+            if (this.value.length > 0) {
+                $("#namePrompt .modal-footer button").prop("disabled", false);
+            }
+            else {
+                $("#namePrompt .modal-footer button").prop("disabled", true);
+            }
+        });
+
+        // Submit button:
+        $("#modal").on('click', '.modal-footer button', function() {
+            var name = $("#namePrompt .modal-body input").val();
+            // Sanitize name before submit:
+            // TODO!
+            socket.emit('myNameIs', name);
+            // Close modal:
+            $('#namePrompt').modal('hide');
+        });
+    });
+}
+
 // jQuery ready:
 $(function() {
 
@@ -111,6 +139,10 @@ $(function() {
     });
 
     // Events from socket.io server:
+    socket.on('namePrompt', function() {
+        modalNamePrompt();
+    });
+
     socket.on('playerList', function(data) {
         console.log(data);
         var playerList = JSON.parse(data);
