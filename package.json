@@ -1,17 +1,17 @@
 {
   "name": "nodeknockout2016-toptrumps",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A Node.js app",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.13.3",
     "socket.io": "^1.5.1"
   },
   "engines": {
-    "node": "4.4.5"
+    "node": "6.7.0"
   },
   "repository": {
     "type": "git",
@@ -21,10 +21,6 @@
     "node",
     "express"
   ],
-  "author": "Mark Pundsack",
-  "contributors": [
-    "Zeke Sikelianos <zeke@sikelianos.com> (http://zeke.sikelianos.com)",
-    "Jacques Crocker <jacques@nodeknockout.com> (https://www.nodeknockout.com)"
-  ],
+  "author": "Martin Nicholson",
   "license": "MIT"
 }

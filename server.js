@@ -3,6 +3,8 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+var game = require('./game.js');
+
 app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
 
@@ -22,7 +24,7 @@ io.on('connection', function(socket){
     socket.on('categoryPicked', function(cat){
         console.log('category:', cat);
         // Talk back:
-        io.emit('player1turn', { for: 'everyone' });
+        io.emit('yourCard', game.ben.status);
     });
 });
 

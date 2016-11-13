@@ -286,6 +286,51 @@ function playRound(playerList, category) {
 }
 
 
+class Gameloop {
+    constructor () {
+        this.running = false;
+        this.round = 0;
+        this.playerList = [];
+    }
+
+    start() {
+        this.running = true;
+        while (this.running) {
+            this.round++;
+            addWaitingPlayers();
+            announce("Round", this.round, ':');
+            // Ask for category:
+            announce(activePlayer.name +" to choose category...");
+            wait();
+            announce(activePlayer.name +" chose "+ category);
+            // Loop players:
+            playRound(this.playerList, category);
+
+            // Report statuses:
+            this.playerList.forEach(player => {
+                console.log(player.status);
+            });
+
+            // End condition:
+            if (this.round === 10) {
+                this.running = false;
+            }
+        }
+    }
+
+    addWaitingPlayers() {
+        announce("Players joined");
+    }
+
+    announce(msg) {
+        io.emit('announcement', msg);
+    }
+
+}
+//var GL = new Gameloop();
+//GL.start();
+
+
 // Build main data object:
 var countryIndex = {};  // old
 var deck = new Deck();  // new
@@ -301,15 +346,16 @@ fs.readdir(baseDir, (err, files) => {
 });
 
 
+var bill = new Player("Bill");
+var ben = new Player("Ben");
+var players = [bill, ben];
+
+
 setTimeout(function() {
 //    testAllData();
 
     deck.shuffle();
     console.log("Top card:", deck.cards[0].name);
-
-    var bill = new Player("Bill");
-    var ben = new Player("Ben");
-    var players = [bill, ben];
 
     deck.dealCards(players, 20);
     console.log("Top card:", deck.cards[0].name);
@@ -326,3 +372,16 @@ setTimeout(function() {
     }
 
 }, 1500);   // Wait for countries to load first
+
+
+/**
+ * Expose ``.
+ */
+module.exports = {
+    Gameloop: Gameloop,
+    Player: Player,
+    Card: Card,
+    Deck: Deck,
+    playRound: playRound,
+    ben: ben
+};
