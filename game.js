@@ -159,7 +159,7 @@ class Player {
 
 
 // Test imported data:
-function testAllData() {
+/*function testAllData() {
     var errors = {
         "name": 0,
         "caplat": 0,
@@ -197,7 +197,7 @@ function testAllData() {
         }
     }
     console.log("Errors:", errors);
-}
+}*/
 
 // Test for and assign a 2- or 3-deep nested JSON property... or null:
 function assignOrNull(root, key1, key2, key3) {
@@ -295,62 +295,94 @@ function compareCards(cards, prop) {
 class Gameloop {
     constructor () {
         this.running = false;
-        this.round = 0;
+        this.waiting = null;    // setInterval placeholder
         this.playerList = [];
+        this.round = 0;
+        this.category = null;   // changes each round
+        this.roundCards = [];
+        this.lastWinner = null; // SHOULD DEFAULT TO COMPUTER
     }
 
     run() {
         this.running = true;
-        while (this.running) {
-            this.round++;
+        // Play ad infinitum:
+        while (this.running && players.length > 1) {
+            // End condition:
+            if (this.round === 10) {
+                this.running = false;
+            }
+
+            // Preamble:
             this.addWaitingPlayers();
             announceGameStage("Round", this.round, ':');
-            // Ask for category:
-            announceGameStage(activePlayer.name +" to choose category...");
-            wait();
-            announceGameStage(activePlayer.name +" chose "+ category);
-            // Play ad infinitum:
-            while (this.running && players.length > 1) {
-                // Loop players:
-                this.playRound(this.playerList, category);
-                // End condition:
-                if (this.round === 10) {
-                    this.running = false;
-                }
-            }
+
+            // Play cards:
+            this.playRoundPart1();
         }
     }
 
-    playRound(playerList, category) {
-        // somebody must choose a category first
-        if (typeof category === "undefined") {
-            category = "population.number";
-        }
-
+    playRoundPart1() {
         // Players play their cards into the "pot":
-        var roundCards = [];
-        playerList.forEach(player => {
-            roundCards.push(player.playCard());
+        this.playerList.forEach(player => {
+            this.roundCards.push(player.playCard());
+
+            // Also let everybody see their top card:
+            sendCard(player.sockid);
         });
 
+        // Somebody must now choose a category:
+        announceGameStage(activePlayer.name +" to choose category...");
+        this.waitForCategory();
+    }
+
+    playRoundPart2() {
         // Compare cards:
-        var winningCard = compareCards(roundCards, category),
-            windex = roundCards.indexOf(winningCard),
-            winningPlayer = playerList[windex];
+        var winningCard = compareCards(this.roundCards, this.category),
+            windex = this.roundCards.indexOf(winningCard),
+            winningPlayer = this.playerList[windex];
+        this.lastWinner = winningPlayer;
         console.log(winningPlayer.name, "won with", winningCard.name);
 
         // Reassign all played cards to winner:
-        roundCards.forEach(card => {
+        this.roundCards.forEach(card => {
             winningPlayer.receiveCard(card);
         });
-    }
+        this.roundCards = [];
 
-    addWaitingPlayers() {
-        announce("Players joined");
+        // Round over!
+        this.round++;
     }
 
     waitForCategory() {
+        // Start a timer, we don't want to wait all day:
+        this.waiting = setInterval(function() {
+            this.randomiseCategory();
+        }, 3000);
+        if (this.lastWinner) {
+            // Ask player:
+            categoryPrompt(this.lastWinner.sockid);
+        }
+        else {
+            // If no winner, Computer chooses immediately:
+            clearInterval(this.waiting);
+            this.randomiseCategory();
+        }
+        this.playRoundPart2();
+    }
 
+    randomiseCategory() {
+        // TODO! randomisation
+        if (!this.category) {
+            this.category = "population.number";
+        }
+    }
+
+    addWaitingPlayers() {
+        // TODO! waitlist -> active
+        this.playerList.forEach(player => {
+            announcePlayer(player, 'in');
+        });
+        console.log("Players joined");
     }
 }
 
@@ -367,20 +399,10 @@ fs.readdir(baseDir, (err, files) => {
     console.log(theDeck.cards.length + " countries loaded.");
     theDeck.shuffle();
 });
-
-
+// Build default things:
 var computer = new Player("Computer");  // NEEDS SPECIAL ID
 var players = [computer];
 
-/*
-setTimeout(function() {
-
-    theDeck.dealCards(players, 20);
-    console.log("Top card:", theDeck.cards[0].name);
-
-
-}, 1500);   // Wait for countries to load first
-*/
 
 /**
  * Expose it to parent file:
@@ -389,8 +411,6 @@ module.exports = {
     // Classes:
     Gameloop: Gameloop,
     Player: Player,
-    Card: Card,
-    Deck: Deck,
     // Vars:
     theDeck: theDeck,
     players: players

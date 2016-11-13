@@ -25,7 +25,7 @@ app.use(session);
 // Use shared session middleware for socket.io
 // setting autoSave:true
 io.use(sharedsession(session, {
-    autoSave:true
+    autoSave:true   // ?
 }));
 
 
@@ -37,43 +37,48 @@ io.on('connection', function(socket){
     //console.log(socket.handshake);
     // Perform duplicate check:
     game.players.forEach(player => {
-        if (player.id === socket.handshake.sessionID) {
+        if (player.sessid === socket.handshake.sessionID) {
             // Reject player because he's already connected:
             console.log("rejecting socket with sessionId", socket.handshake.sessionID);
             socket.disconnect(true);
         }
     });
-    //console.log(socket)
     // sessionId was unused, allow to join:
     namePrompt(socket.id);
-
-    // Connection dropped:
-    socket.on('disconnect', function(){
-        console.log('user disconnected');
-    });
 
     // Listen to clients:
     socket.on('myNameIs', function(name) {
         // Make a new player, add him, and update the game:
         // TODO: check if name exists, and add suffix
         socket.player = new game.Player(name);
-        socket.player.id = socket.handshake.sessionId;
-        console.log('a user connected: ' + socket.player.name + " aka socket " + socket.player.id);
+        socket.player.sessid = socket.handshake.sessionID;
+        socket.player.sockid = socket.id;
+        console.log('a user connected: ' + socket.player.name + " aka session " + socket.player.sessid);
+        // Register player:
         game.players.push(socket.player);
         updatePlayerList();
 
         // Start game loop if not yet running:
         if (typeof game.loop === "undefined") {
+            game.theDeck.shuffle();
+            game.theDeck.dealCards(game.players, 25);
             game.loop = new game.Gameloop();
             game.loop.run();
         }
     });
 
-    // MOVE INTO GAMELOOP
+    // Connection dropped:
+    socket.on('disconnect', function(socket){
+        console.log('user disconnected');
+        // Splice him out of players array:
+        game.players.splice(game.players.indexOf(socket.player), 1);
+        updatePlayerList();
+    });
+
+    // Player chose his category:
     socket.on('categoryPicked', function(cat){
         console.log('category:', cat);
-        // Talk back:
-        sendCard();
+        game.loop.category = cat;
     });
 
 });
@@ -83,8 +88,12 @@ function namePrompt(socketid) {
     // Send prompt to this user only:
     io.to(socketid).emit('namePrompt', null);
 }
+function categoryPrompt(socketid) {
+    // Send prompt to this user only:
+    io.to(socketid).emit('categoryPrompt', null);
+}
 
-function announcePlayer(status) {
+function announcePlayer(player, status) {
     //  Announce joins/leaves
     switch (status) {
         case 'in':
@@ -102,26 +111,26 @@ function updatePlayerList() {
 }
 
 function announceGameStage(type) {
-    switch (status) {
+    switch (type) {
         case 'roundStart':
             //  Announce each round start
-            io.emit('roundStart', "Round " + round + " starting...");
+            io.emit('roundStart', "Round " + game.loop.round + " starting...");
             break;
         case 'categorySet':
             //  Announce category choice
-            io.emit('categorySet', player + " chose category " + category);
+            io.emit('categorySet', game.loop.lastWinner.name + " chose category " + game.loop.category);
             break;
         case 'statCheck':
             //  Announce round card stats
             var stats = [];
-            roundCards.forEach(card => {
-                stats.push(card.name + ": " + category + ": " + fetchFromObject(card, category));
+            game.loop.roundCards.forEach(card => {
+                stats.push(card.name + ": " + game.loop.category + ": " + fetchFromObject(card, game.loop.category));
             });
             io.emit('statCheck', stats);
             break;
         case 'roundOver':
             //  Announce winner
-            io.emit('roundOver', player + " won that round with " + country.name + " and took " + rounCards.length + " cards.");
+            io.emit('roundOver', game.loop.lastWinner.name + " won that round with " + country.name + " and took " + game.loop.roundCards.length + " cards.");
             break;
     }
 }
