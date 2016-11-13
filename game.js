@@ -1,3 +1,4 @@
+/* global comms */
 'use strict';
 
 // begin
@@ -314,7 +315,7 @@ class Gameloop {
 
             // Preamble:
             this.addWaitingPlayers();
-            announceGameStage("Round", this.round, ':');
+            comms.announceGameStage("Round", this.round, ':');
 
             // Play cards:
             this.playRoundPart1();
@@ -327,11 +328,11 @@ class Gameloop {
             this.roundCards.push(player.playCard());
 
             // Also let everybody see their top card:
-            sendCard(player.sockid);
+            comms.sendCard(player.sockid);
         });
 
         // Somebody must now choose a category:
-        announceGameStage(activePlayer.name +" to choose category...");
+        comms.announceGameStage(this.lastWinner.name +" to choose category...");
         this.waitForCategory();
     }
 
@@ -360,7 +361,7 @@ class Gameloop {
         }, 3000);
         if (this.lastWinner) {
             // Ask player:
-            categoryPrompt(this.lastWinner.sockid);
+            comms.categoryPrompt(this.lastWinner.sockid);
         }
         else {
             // If no winner, Computer chooses immediately:
@@ -380,7 +381,7 @@ class Gameloop {
     addWaitingPlayers() {
         // TODO! waitlist -> active
         this.playerList.forEach(player => {
-            announcePlayer(player, 'in');
+            comms.announcePlayer(player, 'in');
         });
         console.log("Players joined");
     }

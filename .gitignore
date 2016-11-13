@@ -3,5 +3,4 @@ TODO.txt
 node_modules
 *.zip
 .*
-factbook.json-master/*/
-!factbook.json-master/all
+npm-debug.log

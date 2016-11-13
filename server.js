@@ -2,15 +2,12 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-
+// My modules:
+var comms = require('./comms.js');
 var game = require('./game.js');
 
 app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
-
-app.get('/', function(request, response) {
-    response.sendFile('display.html', {root: __dirname + '/public/'});
-});
 
 
 // Session management stuff using express-socket.io-session module:
@@ -44,7 +41,7 @@ io.on('connection', function(socket){
         }
     });
     // sessionId was unused, allow to join:
-    namePrompt(socket.id);
+    comms.namePrompt(socket.id);
 
     // Listen to clients:
     socket.on('myNameIs', function(name) {
@@ -56,7 +53,7 @@ io.on('connection', function(socket){
         console.log('a user connected: ' + socket.player.name + " aka session " + socket.player.sessid);
         // Register player:
         game.players.push(socket.player);
-        updatePlayerList();
+        comms.updatePlayerList();
 
         // Start game loop if not yet running:
         if (typeof game.loop === "undefined") {
@@ -72,7 +69,7 @@ io.on('connection', function(socket){
         console.log('user disconnected');
         // Splice him out of players array:
         game.players.splice(game.players.indexOf(socket.player), 1);
-        updatePlayerList();
+        comms.updatePlayerList();
     });
 
     // Player chose his category:
@@ -83,63 +80,13 @@ io.on('connection', function(socket){
 
 });
 
-// Server -> Client broadcasts
-function namePrompt(socketid) {
-    // Send prompt to this user only:
-    io.to(socketid).emit('namePrompt', null);
-}
-function categoryPrompt(socketid) {
-    // Send prompt to this user only:
-    io.to(socketid).emit('categoryPrompt', null);
-}
 
-function announcePlayer(player, status) {
-    //  Announce joins/leaves
-    switch (status) {
-        case 'in':
-            io.emit('playerJoin', player.name + "joined the game.");
-            break;
-        case 'out':
-            io.emit('playerLeave', player.name + "left the game.");
-            break;
-    }
-}
+// Always serve the main html file to visitors:
+app.get('/', function(request, response) {
+    response.sendFile('display.html', {root: __dirname + '/public/'});
+});
 
-function updatePlayerList() {
-    //  Update player list
-    io.emit('playerList', JSON.stringify(game.players));
-}
-
-function announceGameStage(type) {
-    switch (type) {
-        case 'roundStart':
-            //  Announce each round start
-            io.emit('roundStart', "Round " + game.loop.round + " starting...");
-            break;
-        case 'categorySet':
-            //  Announce category choice
-            io.emit('categorySet', game.loop.lastWinner.name + " chose category " + game.loop.category);
-            break;
-        case 'statCheck':
-            //  Announce round card stats
-            var stats = [];
-            game.loop.roundCards.forEach(card => {
-                stats.push(card.name + ": " + game.loop.category + ": " + fetchFromObject(card, game.loop.category));
-            });
-            io.emit('statCheck', stats);
-            break;
-        case 'roundOver':
-            //  Announce winner
-            io.emit('roundOver', game.loop.lastWinner.name + " won that round with " + country.name + " and took " + game.loop.roundCards.length + " cards.");
-            break;
-    }
-}
-
-function sendCard(socketid) {
-    //  Send out 1 card per player
-    io.to(socketid).emit('yourCard', JSON.stringify(game.theDeck.getNextCard()));
-}
-
+// Start serving:
 http.listen(5000, function() {
-    console.log('listening on *:3000');
+    console.log('listening on *:5000');
 });
