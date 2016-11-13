@@ -30,6 +30,46 @@ function renderCountry(cdata) {
     $card.find('button[name="population.medage"] span').html(formatNumber(cdata.population.medage, 'age'));
 }
 
+function formatNumber(number, type) {
+    if (number === null) {
+        return "unknown";
+    }
+    switch (type) {
+        case 'distance':
+            return number.toFixed(0) + 'km';
+        case 'height':
+            return number.toFixed(0) + 'm';
+        case 'area':
+            return number.toFixed(0) + 'km&sup2;';
+        case 'percent':
+            return number.toFixed(1) + '%';
+        case 'money':
+            return '$' + number.toFixed(0) + '%';   // comma-ize?
+        case 'age':
+            return number.toFixed(1) + ' years';
+        case 'density':
+            return number.toFixed(1) + '/km&sup2;';
+        case 'degrees':
+            return number.toFixed(2) + 'º';
+        default:
+            return number.toFixed(0);
+    }
+}
+
+function renderPlayers(playerList) {
+    var $list = $("#playerList");
+    // Clear out:
+    $list.html();
+    playerList.forEach(player => {
+        // Build new <li>:
+        var li = $("<li>").attr("id", player.id);
+        $("<strong>").html(player.name).appendTo(li);
+        $("<span>").html(player.cards.length + ' cards').appendTo(li);
+        $("<span>").html(player.wins + ' wins').appendTo(li);
+        li.appendTo($list);
+    });
+}
+
 function beginYourTurn() {
     // Enable buttons
     $(".card button").prop( "disabled", false );
@@ -60,32 +100,6 @@ function pickCategory(cat) {
     socket.emit('categoryPicked', cat);
 }
 
-function formatNumber(number, type) {
-    if (number === null) {
-        return "unknown";
-    }
-    switch (type) {
-        case 'distance':
-            return number.toFixed(0) + 'km';
-        case 'height':
-            return number.toFixed(0) + 'm';
-        case 'area':
-            return number.toFixed(0) + 'km&sup2;';
-        case 'percent':
-            return number.toFixed(1) + '%';
-        case 'money':
-            return '$' + number.toFixed(0) + '%';   // comma-ize?
-        case 'age':
-            return number.toFixed(1) + ' years';
-        case 'density':
-            return number.toFixed(1) + '/km&sup2;';
-        case 'degrees':
-            return number.toFixed(2) + 'º';
-        default:
-            return number.toFixed(0);
-    }
-}
-
 // jQuery ready:
 $(function() {
 
@@ -97,6 +111,12 @@ $(function() {
     });
 
     // Events from socket.io server:
+    socket.on('playerList', function(data) {
+        console.log(data);
+        var playerList = JSON.parse(data);
+        renderPlayers(playerList);
+    });
+
     socket.on('yourCard', function(data) {
         console.log(data);
         var cdata = JSON.parse(data);

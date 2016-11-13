@@ -23,7 +23,7 @@ class Card {
         if (coords !== null) {
             try {
                 var lat = coords[0].trim().split(/\s/);  // length 3
-                var long = coords[1].trim().split(/\s/); // length 3
+                var long = coords[1].trim().split(/\s/); // length 3    // null ERROR in 'od'
                 this.capital.lat = Math.abs(parseNumber(lat[0]) + parseNumber(lat[1])/60.0);
                 this.capital.latsign = lat[2];
                 this.capital.long = Math.abs(parseNumber(long[0]) + parseNumber(long[1])/60.0);
@@ -91,7 +91,6 @@ class Card {
 
 }
 
-
 // Define a deck:
 class Deck {
     constructor() {
@@ -137,7 +136,6 @@ class Deck {
         }
     }
 }
-
 
 // Define a player:
 class Player {
@@ -243,12 +241,12 @@ function parseNumber(text, prefix = '', suffix = '') {
         // parseFloat it:
         return parseFloat(rawNum);
     } catch (e) {
-        console.log(text, e);
+        //console.log(text, e);   // SHOWS MANY ERRORS: Cannot read property '0' of null in parseNumber()
         return 0;
     }
 }
 // Test cases:
-{
+/*{
     console.log("Area:", parseNumber("29,743 sq km", "", "sq km"));
     console.log("Low:", parseNumber("lowest point: Debed River 400 m", "", "m"));
     console.log("High:", parseNumber("highest point: Aragats Lerrnagagat' 4,090 m", "", "m"));
@@ -256,7 +254,7 @@ function parseNumber(text, prefix = '', suffix = '') {
     console.log("Births:", parseNumber("13.3 births/1,000 population (2016 est.)"));
     console.log("Percent:", parseNumber("13.3%", "", "%"));
     console.log("Largest Urban:", parseNumber("THE VALLEY (capital) 1,000 (2014)", "", ""));
-}
+}*/
 
 // Can fetch a deeply-nested property e.g. fetchFromObject(country, "transport.roads.paved")
 function fetchFromObject(obj, prop) {
@@ -371,18 +369,18 @@ var theDeck = new Deck();  // new
 fs.readdir(baseDir, (err, files) => {
     files.forEach(file => {
         var c = path.parse(file).name;
-        //console.log("Loading", c);
         var card = new Card(c);
-        //countryIndex[c] = card;
         theDeck.addCard(card);
     });
     console.log(theDeck.cards.length + " countries loaded.");
+    theDeck.shuffle();
 });
 
 
+var computer = new Player("Computer");
 var bill = new Player("Bill");
 var ben = new Player("Ben");
-var players = [bill, ben];
+var players = [computer, bill, ben];
 
 /*
 setTimeout(function() {
@@ -409,15 +407,17 @@ setTimeout(function() {
 */
 
 /**
- * Expose ``.
+ * Expose it to parent file:
  */
 module.exports = {
+    // Classes:
     Gameloop: Gameloop,
     Player: Player,
     Card: Card,
     Deck: Deck,
+    // Vars:
     theDeck: theDeck,
-    playRound: playRound,
-    ben: ben,
-    bill: bill
+    players: players,
+    // Functions:
+    playRound: playRound,   // MOVE INTO Gameloop class
 };
