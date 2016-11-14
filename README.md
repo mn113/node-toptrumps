@@ -1,12 +1,16 @@
-# Node Knockout 2016 Starter
+# Node Top Trumps [a Work-in-Progress!]
 
-A barebones Node.js app using [Express 4](http://expressjs.com/).
+A web app which uses the [World Factbook dataset](https://github.com/opendatajson/factbook.json) to generate a Top Trumps-style card game which you will soon be able play online against the computer and other players around the world.
 
-Tuned to run on EngineYard Cloud.
+## Built with
+
+- Node.js
+- Express
+- Socket.io
 
 ## Running Locally
 
-Make sure you have [Node.js](http://nodejs.org/) installed (uses version `4.4.5`).
+Make sure you have [Node.js](http://nodejs.org/) installed (uses version `6.7.0`).
 
 ```sh
 git clone git@github.com:rumblex/nodeknockout2016-toptrumps.git # or clone your own fork
@@ -16,20 +20,3 @@ npm start
 ```
 
 Your app should now be running on [localhost:5000](http://localhost:5000/).
-
-## Deploying to EngineYard
-
-Log into <https://cloud.engineyard.com>. Navigate to your Team's Application, and click "Deploy".
-
-
-## Supported Node.js versions
-
-Please use one of these Node.js versions
-
-4.4.5, 4.6.0, 5.11.0, 6.4.0, 6.7.0
-
-## Documentation
-
-For more information about using Node.js on EngineYard, check out these articles
-
-- [Deploy Your Node.js Application on Engine Yard Cloud](https://support.cloud.engineyard.com/hc/en-us/articles/205411878-Deploy-Your-Node-js-Application-on-Engine-Yard-Cloud)
