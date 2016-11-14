@@ -12,21 +12,21 @@ class Card {
         // open file
         var countryJSON = JSON.parse(fs.readFileSync(baseDir + countryCode +'.json', 'utf8'));
         // Extract individual data pieces and store in my own structured object:
-        this.name = assignOrNull(countryJSON, "Government", "Country name", "conventional short form");
+        this.name = Utility.assignOrNull(countryJSON, "Government", "Country name", "conventional short form");
         // Account for name aberrations:
-        if (!this.name) { this.name = assignOrNull(countryJSON, "Government", "Country name", "Dutch short form"); }
+        if (!this.name) { this.name = Utility.assignOrNull(countryJSON, "Government", "Country name", "Dutch short form"); }
         this.capital = {};
-        this.capital.name = assignOrNull(countryJSON, "Government", "Capital", "name");
-        this.capital.coords = assignOrNull(countryJSON, "Government", "Capital", "geographic coordinates");
+        this.capital.name = Utility.assignOrNull(countryJSON, "Government", "Capital", "name");
+        this.capital.coords = Utility.assignOrNull(countryJSON, "Government", "Capital", "geographic coordinates");
         // Extract the lat and long values from coordinate string (also absolutify them):
         var coords = this.capital.coords ? this.capital.coords.split(",") : null;   // length 2
         if (coords !== null) {
             try {
                 var lat = coords[0].trim().split(/\s/);  // length 3
                 var long = coords[1].trim().split(/\s/); // length 3    // null ERROR in 'od'
-                this.capital.lat = Math.abs(parseNumber(lat[0]) + parseNumber(lat[1])/60.0);
+                this.capital.lat = Math.abs(Utility.parseNumber(lat[0]) + Utility.parseNumber(lat[1])/60.0);
                 this.capital.latsign = lat[2];
-                this.capital.long = Math.abs(parseNumber(long[0]) + parseNumber(long[1])/60.0);
+                this.capital.long = Math.abs(Utility.parseNumber(long[0]) + Utility.parseNumber(long[1])/60.0);
                 this.capital.longsign = long[2];
                 //console.log(countryCode, this.capital.lat, this.capital.latsign);
             }
@@ -41,17 +41,17 @@ class Card {
             this.capital.longsign = null;
         }
         this.area = {};
-        this.area.total = parseNumber(assignOrNull(countryJSON, "Geography", "Area", "total"), "", "sq km");
-        this.area.land = parseNumber(assignOrNull(countryJSON, "Geography", "Area", "land"), "", "sq km");
-        this.area.water = parseNumber(assignOrNull(countryJSON, "Geography", "Area", "water"), "", "sq km");
+        this.area.total = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Geography", "Area", "total"), "", "sq km");
+        this.area.land = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Geography", "Area", "land"), "", "sq km");
+        this.area.water = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Geography", "Area", "water"), "", "sq km");
         this.elevation = {};
-        this.elevation.mean = parseNumber(assignOrNull(countryJSON, "Geography", "Elevation", "mean elevation"), "", "m");
-        var elevExtremes = assignOrNull(countryJSON, "Geography", "Elevation", "elevation extremes");
+        this.elevation.mean = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Geography", "Elevation", "mean elevation"), "", "m");
+        var elevExtremes = Utility.assignOrNull(countryJSON, "Geography", "Elevation", "elevation extremes");
         var elevs = elevExtremes ? elevExtremes.split("++") : null;
         if (elevs !== null) {
             try {
-                this.elevation.lowest = parseNumber(elevs[0], "", "m");
-                this.elevation.highest = parseNumber(elevs[1], "", "m");
+                this.elevation.lowest = Utility.parseNumber(elevs[0], "", "m");
+                this.elevation.highest = Utility.parseNumber(elevs[1], "", "m");
             }
             catch (e) {
                 console.log(countryCode, e);
@@ -62,25 +62,25 @@ class Card {
             this.elevation.highest = null;
         }
         this.borders = {};
-        this.borders.land = parseNumber(assignOrNull(countryJSON, "Geography", "Land boundaries", "total"), "", "km");
-        this.borders.coast =  parseNumber(assignOrNull(countryJSON, "Geography", "Coastline"), "", "km");
-        this.borders.list = assignOrNull(countryJSON, "Geography", "Land boundaries", "border countries");
+        this.borders.land = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Geography", "Land boundaries", "total"), "", "km");
+        this.borders.coast =  Utility.parseNumber(Utility.assignOrNull(countryJSON, "Geography", "Coastline"), "", "km");
+        this.borders.list = Utility.assignOrNull(countryJSON, "Geography", "Land boundaries", "border countries");
         // Split and count the comma-separated list of neighbours, or use zero:
         this.borders.number = this.borders.list ? this.borders.list.split(',').length : 0;
         this.transport = {};
-        this.transport.road = parseNumber(assignOrNull(countryJSON, "Transportation", "Roadways", "total"), "", "km");
-        this.transport.rail = parseNumber(assignOrNull(countryJSON, "Transportation", "Railways", "total"), "", "km");
-        this.transport.water = parseNumber(assignOrNull(countryJSON, "Transportation", "Waterways"), "", "km");
+        this.transport.road = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Transportation", "Roadways", "total"), "", "km");
+        this.transport.rail = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Transportation", "Railways", "total"), "", "km");
+        this.transport.water = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Transportation", "Waterways"), "", "km");
         this.gdp = {};
-        this.gdp.net = parseNumber(assignOrNull(countryJSON, "Economy", "GDP (official exchange rate)"), "$", "");
-        this.gdp.percapita = parseNumber(assignOrNull(countryJSON, "Economy", "GDP - per capita (PPP)"), "$", "");
+        this.gdp.net = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Economy", "GDP (official exchange rate)"), "$", "");
+        this.gdp.percapita = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Economy", "GDP - per capita (PPP)"), "$", "");
         this.population = {};
-        this.population.number = parseNumber(assignOrNull(countryJSON, "People and Society", "Population"));
-        this.population.lgurban = parseNumber(assignOrNull(countryJSON, "People and Society", "Major urban areas - population"), "", "");
-        this.population.lifexp = parseNumber(assignOrNull(countryJSON, "People and Society", "Life expectancy at birth", "total population"));
-        this.population.youngest = parseNumber(assignOrNull(countryJSON, "People and Society", "Age structure", "0-14 years"), "", "%");
-        this.population.oldest = parseNumber(assignOrNull(countryJSON, "People and Society", "Age structure", "65 years and over"), "", "%");
-        this.population.medage = parseNumber(assignOrNull(countryJSON, "People and Society", "Median age", "total"));
+        this.population.number = Utility.parseNumber(Utility.assignOrNull(countryJSON, "People and Society", "Population"));
+        this.population.lgurban = Utility.parseNumber(Utility.assignOrNull(countryJSON, "People and Society", "Major urban areas - population"), "", "");
+        this.population.lifexp = Utility.parseNumber(Utility.assignOrNull(countryJSON, "People and Society", "Life expectancy at birth", "total population"));
+        this.population.youngest = Utility.parseNumber(Utility.assignOrNull(countryJSON, "People and Society", "Age structure", "0-14 years"), "", "%");
+        this.population.oldest = Utility.parseNumber(Utility.assignOrNull(countryJSON, "People and Society", "Age structure", "65 years and over"), "", "%");
+        this.population.medage = Utility.parseNumber(Utility.assignOrNull(countryJSON, "People and Society", "Median age", "total"));
         //this.population.births = parseNumber(assignOrNull(countryJSON, "People and Society", "Birth rate"), "", "%");
         // Calculate density manually:
         this.population.density = this.population.number / this.area.total;
@@ -158,146 +158,98 @@ class Player {
     }
 }
 
+// Various functions:
+class Utility {
 
-// Test imported data:
-/*function testAllData() {
-    var errors = {
-        "name": 0,
-        "caplat": 0,
-        "borders": 0,
-        "roads": 0,
-        "popnum": 0
-    };
-    for (var key in countryIndex) {
-        if (countryIndex.hasOwnProperty(key)) {
-            try {
-                var cdata = countryIndex[key];
-                if (cdata.name === null) {
-                	errors.name++;
-                	console.log("NO NAME", key, cdata);
+    // Test for and assign a 2- or 3-deep nested JSON property... or null:
+    static assignOrNull(root, key1, key2, key3) {
+        try {
+            // Key1 should always exist. Key2 may or may not.
+            if (root[key1] && root[key1][key2]) {
+                // Key3 is optional
+                if (key3) {
+                    if (root[key1][key2][key3]) {
+                        if (root[key1][key2][key3].text && typeof root[key1][key2][key3].text !== "undefined") {
+                            return root[key1][key2][key3].text;
+                        }
+                    }
                 }
-                if (cdata.capital.lat === null) {
-                	errors.caplat++;
-                	console.log("NO CAPLAT", key, cdata);
-                }
-                if (cdata.borders.number === null) {
-                	errors.borders++;
-                	console.log("NO BORDERS", key, cdata);
-                }
-                if (cdata.transport.road === null) {
-                	errors.roads++;
-                	console.log("NO ROADS", key, cdata);
-                }
-                if (cdata.population.number === null) {
-                	errors.popnum++;
-                	console.log("NO POP", key, cdata);
-                }
-            } catch (e) {
-                console.log(e);
-            }
-        }
-    }
-    console.log("Errors:", errors);
-}*/
-
-// Test for and assign a 2- or 3-deep nested JSON property... or null:
-function assignOrNull(root, key1, key2, key3) {
-    try {
-        // Key1 should always exist. Key2 may or may not.
-        if (root[key1] && root[key1][key2]) {
-            // Key3 is optional
-            if (key3) {
-                if (root[key1][key2][key3]) {
-                    if (root[key1][key2][key3].text && typeof root[key1][key2][key3].text !== "undefined") {
-                        return root[key1][key2][key3].text;
+                // Just 2 keys:
+                else {
+                    if (root[key1][key2].text && typeof root[key1][key2].text !== "undefined") {
+                        return root[key1][key2].text;
                     }
                 }
             }
-            // Just 2 keys:
-            else {
-                if (root[key1][key2].text && typeof root[key1][key2].text !== "undefined") {
-                    return root[key1][key2].text;
-                }
+            return null;
+        }
+        catch (e) {
+            return null;
+        }
+    }
+
+    // Parse complex numerical values out of a text string:
+    static parseNumber(text, prefix = '', suffix = '') {
+        // Find numerical sequence using regex:
+        var re = new RegExp("(?:" + prefix + ")" + "[\\s]*([0-9\\.,])+[\\s]*" + "(?:" + suffix + ")");
+        //console.log(re);
+        try {
+            var foundNum = re.exec(text)[0];
+            //console.log("Found:", foundNum);
+            // Strip commas:
+            var commas = /,/g;
+            var rawNum = foundNum.replace(commas, '');
+            // parseFloat it:
+            return parseFloat(rawNum);
+        } catch (e) {
+            //console.log(text, e);   // SHOWS MANY ERRORS: Cannot read property '0' of null in parseNumber()
+            return 0;
+        }
+    }
+
+    // Can fetch a deeply-nested property e.g. fetchFromObject(country, "transport.roads.paved")
+    static fetchFromObject(obj, prop) {
+        if(typeof obj === 'undefined') {
+            return false;
+        }
+        var _index = prop.indexOf('.');
+        if(_index > -1) {
+            return Utility.fetchFromObject(obj[prop.substring(0, _index)], prop.substr(_index + 1));
+        }
+        return obj[prop];
+    }
+
+    // Compare an array of cards on a property and return winner:
+    static compareCards(cards, prop) {
+        cards.forEach(card => {
+            console.log(card.name, Utility.fetchFromObject(card, prop));
+        });
+        // Pick winner:
+        var highest = cards.reduce((a,b) => {
+            // Test for nulls:
+            if (Utility.fetchFromObject(a, prop) === null) {
+                return b;
             }
-        }
-        return null;
-    }
-    catch (e) {
-        return null;
-    }
-}
-
-// Parse complex numerical values out of a text string:
-function parseNumber(text, prefix = '', suffix = '') {
-    // Find numerical sequence using regex:
-    var re = new RegExp("(?:" + prefix + ")" + "[\\s]*([0-9\\.,])+[\\s]*" + "(?:" + suffix + ")");
-    //console.log(re);
-    try {
-        var foundNum = re.exec(text)[0];
-        //console.log("Found:", foundNum);
-        // Strip commas:
-        var commas = /,/g;
-        var rawNum = foundNum.replace(commas, '');
-        // parseFloat it:
-        return parseFloat(rawNum);
-    } catch (e) {
-        //console.log(text, e);   // SHOWS MANY ERRORS: Cannot read property '0' of null in parseNumber()
-        return 0;
+            else if (Utility.fetchFromObject(b, prop) === null) {
+                return a;
+            }
+            // No nulls, compare values:
+            return (Utility.fetchFromObject(a, prop) > Utility.fetchFromObject(b, prop)) ? a : b;
+        });
+        //var lowest = cards.reduce((a,b) => {
+        //    return (a < b) ? a : b;
+        //});
+        console.log(highest.name, "wins with", Utility.fetchFromObject(highest, prop));
+        return highest;
     }
 }
-// Test cases:
-/*{
-    console.log("Area:", parseNumber("29,743 sq km", "", "sq km"));
-    console.log("Low:", parseNumber("lowest point: Debed River 400 m", "", "m"));
-    console.log("High:", parseNumber("highest point: Aragats Lerrnagagat' 4,090 m", "", "m"));
-    console.log("Pop:", parseNumber("3,051,250 (July 2016 est.)"));
-    console.log("Births:", parseNumber("13.3 births/1,000 population (2016 est.)"));
-    console.log("Percent:", parseNumber("13.3%", "", "%"));
-    console.log("Largest Urban:", parseNumber("THE VALLEY (capital) 1,000 (2014)", "", ""));
-}*/
-
-// Can fetch a deeply-nested property e.g. fetchFromObject(country, "transport.roads.paved")
-function fetchFromObject(obj, prop) {
-    if(typeof obj === 'undefined') {
-        return false;
-    }
-    var _index = prop.indexOf('.');
-    if(_index > -1) {
-        return fetchFromObject(obj[prop.substring(0, _index)], prop.substr(_index + 1));
-    }
-    return obj[prop];
-}
-
-// Compare an array of cards on a property and return winner:
-function compareCards(cards, prop) {
-    cards.forEach(card => {
-        console.log(card.name, fetchFromObject(card, prop));
-    });
-    // Pick winner:
-    var highest = cards.reduce((a,b) => {
-        // Test for nulls:
-        if (fetchFromObject(a, prop) === null) {
-            return b;
-        }
-        else if (fetchFromObject(b, prop) === null) {
-            return a;
-        }
-        // No nulls, compare values:
-        return (fetchFromObject(a, prop) > fetchFromObject(b, prop)) ? a : b;
-    });
-    //var lowest = cards.reduce((a,b) => {
-    //    return (a < b) ? a : b;
-    //});
-    console.log(highest.name, "wins with", fetchFromObject(highest, prop));
-    return highest;
-}
-
 
 class Gameloop {
-    constructor () {
+    constructor (players) {
         this.running = false;
         this.waiting = null;    // setInterval placeholder
         this.playerList = [];
+        this.waitList = players || [];
         this.round = 0;
         this.category = null;   // changes each round
         this.roundCards = [];
@@ -338,7 +290,7 @@ class Gameloop {
 
     playRoundPart2() {
         // Compare cards:
-        var winningCard = compareCards(this.roundCards, this.category),
+        var winningCard = Utility.compareCards(this.roundCards, this.category),
             windex = this.roundCards.indexOf(winningCard),
             winningPlayer = this.playerList[windex];
         this.lastWinner = winningPlayer;
@@ -379,11 +331,12 @@ class Gameloop {
     }
 
     addWaitingPlayers() {
-        // TODO! waitlist -> active
-        this.playerList.forEach(player => {
-            comms.announcePlayer(player, 'in');
-        });
-        console.log("Players joined");
+        // Move all waiting players to active list:
+        while (this.waitList.length > 0) {
+            var newPlayer = this.waitList.shift();
+            this.playerList.push(newPlayer);
+            comms.announcePlayer(newPlayer, 'in');
+        }
     }
 }
 
@@ -412,6 +365,7 @@ module.exports = {
     // Classes:
     Gameloop: Gameloop,
     Player: Player,
+    Utility: Utility,
     // Vars:
     theDeck: theDeck,
     players: players

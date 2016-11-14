@@ -1,4 +1,3 @@
-/* global game */
 
 // Dependencies:
 var express = require('express');
@@ -52,7 +51,7 @@ comms.announceGameStage = function(type) {
             var stats = [];
             game.loop.roundCards.forEach(card => {
                 // TODO! refactor...
-                stats.push(card.name + ": " + game.loop.category + ": " + fetchFromObject(card, game.loop.category));
+                stats.push(card.name + ": " + game.loop.category + ": " + game.Utility.fetchFromObject(card, game.loop.category));
             });
             io.emit('statCheck', stats);
             break;

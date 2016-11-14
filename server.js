@@ -73,7 +73,7 @@ io.on('connection', function(socket){
     });
 
     // Player chose his category:
-    socket.on('categoryPicked', function(cat){
+    socket.on('categoryPicked', function(cat) {
         console.log('category:', cat);
         game.loop.category = cat;
     });
