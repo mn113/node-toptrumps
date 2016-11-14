@@ -9,7 +9,7 @@ var display = (function() {
 
             // Q&D field validation:
             $("#modal").on('keyup', '.modal-body input', function() {
-                console.log(this.value);
+                //console.log(this.value);
                 if (this.value.length > 0) {
                     $("#namePrompt .modal-footer button").prop("disabled", false);
                 }
@@ -87,16 +87,24 @@ var display = (function() {
 
     function renderPlayers(playerList) {
         console.log("Re-rendering playerList");
-        var $list = $("#playerList");
+        var $list1 = $("#player-list .playing"),
+            $list2 = $("#player-list .waiting");
         // Clear out:
-        $list.html("");
-        playerList.forEach(player => {
+        $list1.html("");
+        $list2.html("");
+        playerList.active.forEach(player => {
             // Build new <li>:
             var li = $("<li>").attr("id", player.id);
             $("<strong>").html(player.name).appendTo(li);
             $("<span>").addClass("card-tot").html(player.cards.length + ' cards').appendTo(li);
             $("<span>").addClass("win-tot").html(player.wins + ' wins').appendTo(li);
-            li.appendTo($list);
+            li.appendTo($list1);
+        });
+        playerList.waiting.forEach(player => {
+            // Build new <li>:
+            var li = $("<li>").attr("id", player.id);
+            $("<strong>").html(player.name).appendTo(li);
+            li.appendTo($list2);
         });
     }
 
@@ -169,6 +177,7 @@ socket.on('namePrompt', function() {
 });
 
 socket.on('categoryPrompt', function() {
+    console.log("received categoryPrompt");
     display.beginYourTurn();
 });
 

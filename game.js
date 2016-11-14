@@ -1,9 +1,9 @@
-/* global comms */
 'use strict';
 
-// begin
+//var comms = comms || {};    // Define this empty here, it will inherit all its properties in server.js
+
 const fs = require('fs');
-const path = require('path');
+const baseDir = 'factbook_all/';
 
 // Define a card:
 class Card {
@@ -245,12 +245,13 @@ class Utility {
     }
 }
 
+// Define the main loop that runs the game, and related functions:
 class Gameloop {
     constructor (players) {
         this.running = false;
-        this.waiting = null;    // setInterval placeholder
-        this.playerList = [];
-        this.waitList = players || [];
+        this.waitInterval = null;    // setInterval placeholder
+        this.playerList = players.active || [];
+        this.waitList = players.waiting || [];
         this.round = 0;
         this.category = null;   // changes each round
         this.roundCards = [];
@@ -271,10 +272,19 @@ class Gameloop {
 
             // Preamble:
             this.addWaitingPlayers();
-            comms.announceGameStage("Round", this.round, ':');
+            comms.updateGameText("Round", this.round, ':');
 
             // Play cards:
-            this.playRoundPart1();
+            this.playRoundPart1();  // -> waitForCategory() -> playRoundPart2 -> end of while loop
+        }
+    }
+
+    addWaitingPlayers() {
+        // Move all waiting players to active list:
+        while (this.waitList.length > 0) {
+            var newPlayer = this.waitList.shift();
+            this.playerList.push(newPlayer);
+            comms.announcePlayer(newPlayer, 'in');
         }
     }
 
@@ -288,32 +298,15 @@ class Gameloop {
         });
 
         // Somebody must now choose a category:
-        comms.announceGameStage(this.lastWinner.name +" to choose category...");
+        comms.updateGameText(this.lastWinner.name +" to choose category...");
         this.waitForCategory();
-    }
-
-    playRoundPart2() {
-        // Compare cards:
-        var winningCard = Utility.compareCards(this.roundCards, this.category),
-            windex = this.roundCards.indexOf(winningCard),
-            winningPlayer = this.playerList[windex];
-        this.lastWinner = winningPlayer;
-        console.log(winningPlayer.name, "won with", winningCard.name);
-
-        // Reassign all played cards to winner:
-        this.roundCards.forEach(card => {
-            winningPlayer.receiveCard(card);
-        });
-        this.roundCards = [];
-
-        // Round over!
-        this.round++;
     }
 
     waitForCategory() {
         // Start a timer, we don't want to wait all day:
-        this.waiting = setInterval(function() {
+        this.waitInterval = setInterval(function() {
             this.randomiseCategory();
+            this.playRoundPart2();
         }, 3000);
         if (this.lastWinner) {
             // Ask player:
@@ -321,9 +314,14 @@ class Gameloop {
         }
         else {
             // If no winner, Computer chooses immediately:
-            clearInterval(this.waiting);
+            clearInterval(this.waitInterval);
             this.randomiseCategory();
+            this.playRoundPart2();
         }
+    }
+
+    setCategory(cat) {
+        this.category = cat;
         this.playRoundPart2();
     }
 
@@ -334,39 +332,34 @@ class Gameloop {
         }
     }
 
-    addWaitingPlayers() {
-        // Move all waiting players to active list:
-        while (this.waitList.length > 0) {
-            var newPlayer = this.waitList.shift();
-            this.playerList.push(newPlayer);
-            comms.announcePlayer(newPlayer, 'in');
-        }
+    playRoundPart2() {
+        // Compare cards:
+        var winningCard = Utility.compareCards(this.roundCards, this.category),
+            windex = this.roundCards.indexOf(winningCard),
+            winningPlayer = this.playerList[windex];
+        this.lastWinner = winningPlayer;
+
+        comms.updateGameText(winningPlayer.name, "won with", winningCard.name);
+        // Reassign all played cards to winner:
+        this.roundCards.forEach(card => {
+            winningPlayer.receiveCard(card);
+        });
+        this.roundCards = [];
+
+        // Round over!
+        this.round++;
     }
 }
 
 
-// Build master deck of cards:
-var theDeck = new Deck();
-const baseDir = 'factbook_all/';
-fs.readdir(baseDir, (err, files) => {
-    files.forEach(file => {
-        var c = path.parse(file).name;
-        var card = new Card(c);
-        theDeck.addCard(card);
-    });
-    console.log(theDeck.cards.length + " countries loaded.");
-    theDeck.shuffle();
-});
-
-
 /**
- * Expose it to parent file:
+ * Expose classes to parent file:
  */
 module.exports = {
     // Classes:
-    Gameloop: Gameloop,
+    Card: Card,
+    Deck: Deck,
     Player: Player,
     Utility: Utility,
-    // Vars:
-    theDeck: theDeck
+    Gameloop: Gameloop
 };

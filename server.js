@@ -3,8 +3,9 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 // My modules:
-var game = require('./game.js');
+var game = require('./game.js');    // == object {Card, Deck, Player, Utility, Gameloop}
 
+// Configure Express app:
 app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
 
@@ -32,18 +33,35 @@ game.players = {
     "waiting": []
 };
 
-// Define all communication functions:
+// Build empty deck of cards:
+game.theDeck = new game.Deck();
+// Fill theDeck from JSON file reads:
+const fs = require('fs');
+const path = require('path');
+const baseDir = 'factbook_all/';
+fs.readdir(baseDir, (err, files) => {
+    files.forEach(file => {
+        var c = path.parse(file).name;
+        var card = new game.Card(c);
+        game.theDeck.addCard(card);
+    });
+    console.log(game.theDeck.cards.length + " countries loaded.");
+    game.theDeck.shuffle();
+});
+
+
+// Define all Server -> Client broadcast functions:
 var comms = {
-    // Server -> Client broadcasts
+
     namePrompt: function(socketid) {
         // Send prompt to this user only:
         console.log("sending namePrompt to", socketid);
         io.to(socketid).emit('namePrompt', "");   // NOT WORKING
     },
 
-    categoryPrompt: function(socketid) {
-        // Send prompt to this user only:
-        io.to(socketid).emit('categoryPrompt', null);
+    updatePlayerList: function() {
+        //  Update player list
+        io.emit('playerList', JSON.stringify(game.players));
     },
 
     announcePlayer: function(player, status) {
@@ -58,40 +76,42 @@ var comms = {
         }
     },
 
-    updatePlayerList: function() {
-        //  Update player list
-        io.emit('playerList', JSON.stringify(game.players));
-    },
-
-    announceGameStage: function(type) {
-        switch (type) {
+    updateGameText: function(text) {
+        io.emit('output', text);
+/*        switch (type) {
             case 'roundStart':
                 //  Announce each round start
-                io.emit('roundStart', "Round " + game.loop.round + " starting...");
+                io.emit('output', "Round " + game.loop.round + " starting...");
                 break;
             case 'categorySet':
                 //  Announce category choice
-                io.emit('categorySet', game.loop.lastWinner.name + " chose category " + game.loop.category);
-                break;
-            case 'statCheck':
-                //  Announce round card stats
-                var stats = [];
-                game.loop.roundCards.forEach(card => {
-                    // TODO! refactor...
-                    stats.push(card.name + ": " + game.loop.category + ": " + game.Utility.fetchFromObject(card, game.loop.category));
-                });
-                io.emit('statCheck', stats);
+                io.emit('output', game.loop.lastWinner.name + " chose category " + game.loop.category);
                 break;
             case 'roundOver':
                 //  Announce winner
-                io.emit('roundOver', game.loop.lastWinner.name + " won that round and took " + game.loop.roundCards.length + " cards.");
+                io.emit('output', game.loop.lastWinner.name + " won that round and took " + game.loop.roundCards.length + " cards.");
                 break;
         }
+*/    },
+
+    updateRoundStats: function() {
+        //  Announce round card stats
+        var stats = [];
+        game.loop.roundCards.forEach(card => {
+            // TODO! refactor...
+            stats.push(card.name + ": " + game.loop.category + ": " + game.Utility.fetchFromObject(card, game.loop.category));
+        });
+        io.emit('roundStats', stats);
     },
 
     sendCard: function(socketid) {
         //  Send out 1 card per player
         io.to(socketid).emit('yourCard', JSON.stringify(game.theDeck.getNextCard()));
+    },
+
+    categoryPrompt: function(socketid) {
+        // Send prompt to this user only:
+        io.to(socketid).emit('categoryPrompt', null);
     }
 };
 
@@ -130,15 +150,16 @@ io.on('connection', function(socket){
         if (typeof game.loop === "undefined") {
             game.theDeck.shuffle();
             game.theDeck.dealCards(game.players.active, 25);
-            game.loop = new game.Gameloop();
+            game.loop = new game.Gameloop(game.players);
             game.loop.run();
         }
+        console.log(game.players);
     });
 
     // Player chose his category:
     socket.on('categoryPicked', function(cat) {
         console.log('category:', cat);
-        game.loop.category = cat;
+        game.setCategory(cat);
     });
 
     // Connection dropped:
