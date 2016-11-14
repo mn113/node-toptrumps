@@ -25,13 +25,20 @@ io.use(sharedsession(session, {
 }));
 
 
+// Build default things when server starts:
+var computer = new game.Player("Computer", true); // NEEDS TO BE SINGLETON
+game.players = {
+    "active": [computer],
+    "waiting": []
+};
+
 // Define all communication functions:
 var comms = {
     // Server -> Client broadcasts
     namePrompt: function(socketid) {
         // Send prompt to this user only:
         console.log("sending namePrompt to", socketid);
-        io.to(socketid).emit('namePrompt', JSON.stringify(game.players));   // NOT WORKING
+        io.to(socketid).emit('namePrompt', "");   // NOT WORKING
     },
 
     categoryPrompt: function(socketid) {
@@ -96,7 +103,8 @@ io.on('connection', function(socket){
     // Log connections made:
     //console.log(socket.handshake);
     // Perform duplicate check:
-    game.players.forEach(player => {
+    var allPlayers = game.players.active.concat(game.players.waiting);
+    allPlayers.forEach(player => {
         if (player.sessid === socket.handshake.sessionID) {
             // Reject player because he's already connected:
             console.log("rejecting socket with sessionId", socket.handshake.sessionID);
@@ -104,7 +112,6 @@ io.on('connection', function(socket){
         }
     });
     // sessionId was unused, allow to join:
-//    io.to(socket.id).emit('namePrompt', JSON.stringify(game.players));   // NOT WORKING
     comms.namePrompt(socket.id);
 
     // Listen to clients:
@@ -116,13 +123,13 @@ io.on('connection', function(socket){
         socket.player.sockid = socket.id;
         console.log('a user connected: ' + socket.player.name + ' aka session ' + socket.player.sessid);
         // Register player:
-        game.players.push(socket.player);
+        game.players.waiting.push(socket.player);
         comms.updatePlayerList();
 
         // Start game loop if not yet running:
         if (typeof game.loop === "undefined") {
             game.theDeck.shuffle();
-            game.theDeck.dealCards(game.players, 25);
+            game.theDeck.dealCards(game.players.active, 25);
             game.loop = new game.Gameloop();
             game.loop.run();
         }
@@ -137,8 +144,9 @@ io.on('connection', function(socket){
     // Connection dropped:
     socket.on('disconnect', function(socket){
         console.log('user disconnected');
-        // Splice him out of players array:
-        game.players.splice(game.players.indexOf(socket.player), 1);
+        // Splice him out of both players arrays:
+        game.players.active.splice(game.players.active.indexOf(socket.player), 1);
+        game.players.waiting.splice(game.players.waiting.indexOf(socket.player), 1);    // SMELLY
         comms.updatePlayerList();
     });
 

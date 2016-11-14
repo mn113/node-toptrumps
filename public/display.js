@@ -8,8 +8,8 @@ var display = (function() {
             $('#namePrompt').modal('show');
 
             // Q&D field validation:
-            $("#modal").on('change', '.modal-body input', function() {
-                console.log(this);
+            $("#modal").on('keyup', '.modal-body input', function() {
+                console.log(this.value);
                 if (this.value.length > 0) {
                     $("#namePrompt .modal-footer button").prop("disabled", false);
                 }
@@ -86,15 +86,16 @@ var display = (function() {
     }
 
     function renderPlayers(playerList) {
+        console.log("Re-rendering playerList");
         var $list = $("#playerList");
         // Clear out:
-        $list.html();
+        $list.html("");
         playerList.forEach(player => {
             // Build new <li>:
             var li = $("<li>").attr("id", player.id);
             $("<strong>").html(player.name).appendTo(li);
-            $("<span>").html(player.cards.length + ' cards').appendTo(li);
-            $("<span>").html(player.wins + ' wins').appendTo(li);
+            $("<span>").addClass("card-tot").html(player.cards.length + ' cards').appendTo(li);
+            $("<span>").addClass("win-tot").html(player.wins + ' wins').appendTo(li);
             li.appendTo($list);
         });
     }

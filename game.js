@@ -139,8 +139,9 @@ class Deck {
 
 // Define a player:
 class Player {
-    constructor(name) {
+    constructor(name, isComputer = false) {
         this.name = name;
+        this.isComputer = isComputer;   // TOO SIMPLISTIC / HACKABLE?
         this.wins = 0;
         this.cards = [];
     }
@@ -262,7 +263,7 @@ class Gameloop {
     run() {
         this.running = true;
         // Play ad infinitum:
-        while (this.running && players.length > 1) {
+        while (this.running && this.playerList.length + this.waitList.length > 1) {
             // End condition:
             if (this.round === 10) {
                 this.running = false;
@@ -356,9 +357,6 @@ fs.readdir(baseDir, (err, files) => {
     console.log(theDeck.cards.length + " countries loaded.");
     theDeck.shuffle();
 });
-// Build default things:
-var computer = new Player("Computer");  // NEEDS SPECIAL ID
-var players = [computer];
 
 
 /**
@@ -370,6 +368,5 @@ module.exports = {
     Player: Player,
     Utility: Utility,
     // Vars:
-    theDeck: theDeck,
-    players: players
+    theDeck: theDeck
 };
