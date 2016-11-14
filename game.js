@@ -254,6 +254,9 @@ class Gameloop {
         this.category = null;   // changes each round
         this.roundCards = [];
         this.lastWinner = null; // SHOULD DEFAULT TO COMPUTER
+
+        console.log("Gameloop initialised.");
+        console.log(this);
     }
 
     run() {

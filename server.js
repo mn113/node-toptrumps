@@ -3,7 +3,6 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 // My modules:
-var comms = require('./comms.js');
 var game = require('./game.js');
 
 app.set('port', (process.env.PORT || 5000));
@@ -26,6 +25,70 @@ io.use(sharedsession(session, {
 }));
 
 
+// Define all communication functions:
+var comms = {
+    // Server -> Client broadcasts
+    namePrompt: function(socketid) {
+        // Send prompt to this user only:
+        console.log("sending namePrompt to", socketid);
+        io.to(socketid).emit('namePrompt', JSON.stringify(game.players));   // NOT WORKING
+    },
+
+    categoryPrompt: function(socketid) {
+        // Send prompt to this user only:
+        io.to(socketid).emit('categoryPrompt', null);
+    },
+
+    announcePlayer: function(player, status) {
+        //  Announce joins/leaves
+        switch (status) {
+            case 'in':
+                io.emit('output', player.name + "joined the game.");
+                break;
+            case 'out':
+                io.emit('output', player.name + "left the game.");
+                break;
+        }
+    },
+
+    updatePlayerList: function() {
+        //  Update player list
+        io.emit('playerList', JSON.stringify(game.players));
+    },
+
+    announceGameStage: function(type) {
+        switch (type) {
+            case 'roundStart':
+                //  Announce each round start
+                io.emit('roundStart', "Round " + game.loop.round + " starting...");
+                break;
+            case 'categorySet':
+                //  Announce category choice
+                io.emit('categorySet', game.loop.lastWinner.name + " chose category " + game.loop.category);
+                break;
+            case 'statCheck':
+                //  Announce round card stats
+                var stats = [];
+                game.loop.roundCards.forEach(card => {
+                    // TODO! refactor...
+                    stats.push(card.name + ": " + game.loop.category + ": " + game.Utility.fetchFromObject(card, game.loop.category));
+                });
+                io.emit('statCheck', stats);
+                break;
+            case 'roundOver':
+                //  Announce winner
+                io.emit('roundOver', game.loop.lastWinner.name + " won that round and took " + game.loop.roundCards.length + " cards.");
+                break;
+        }
+    },
+
+    sendCard: function(socketid) {
+        //  Send out 1 card per player
+        io.to(socketid).emit('yourCard', JSON.stringify(game.theDeck.getNextCard()));
+    }
+};
+
+
 // Socket.io:
 io.on('connection', function(socket){
 
@@ -41,6 +104,7 @@ io.on('connection', function(socket){
         }
     });
     // sessionId was unused, allow to join:
+//    io.to(socket.id).emit('namePrompt', JSON.stringify(game.players));   // NOT WORKING
     comms.namePrompt(socket.id);
 
     // Listen to clients:
@@ -50,7 +114,7 @@ io.on('connection', function(socket){
         socket.player = new game.Player(name);
         socket.player.sessid = socket.handshake.sessionID;
         socket.player.sockid = socket.id;
-        console.log('a user connected: ' + socket.player.name + " aka session " + socket.player.sessid);
+        console.log('a user connected: ' + socket.player.name + ' aka session ' + socket.player.sessid);
         // Register player:
         game.players.push(socket.player);
         comms.updatePlayerList();
@@ -64,18 +128,18 @@ io.on('connection', function(socket){
         }
     });
 
+    // Player chose his category:
+    socket.on('categoryPicked', function(cat) {
+        console.log('category:', cat);
+        game.loop.category = cat;
+    });
+
     // Connection dropped:
     socket.on('disconnect', function(socket){
         console.log('user disconnected');
         // Splice him out of players array:
         game.players.splice(game.players.indexOf(socket.player), 1);
         comms.updatePlayerList();
-    });
-
-    // Player chose his category:
-    socket.on('categoryPicked', function(cat) {
-        console.log('category:', cat);
-        game.loop.category = cat;
     });
 
 });
