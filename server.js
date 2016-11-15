@@ -1,14 +1,17 @@
 var express = require('express');
 var app = express();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 // My modules:
 var game = require('./game.js');    // == object {Card, Deck, Player, Utility, Gameloop}
 
 // Configure Express app:
 app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
-
+// Always serve the main html file to visitors:
+app.get('/', function(request, response) {
+    response.sendFile('display.html', {root: __dirname + '/public/'});
+});
 
 // Session management stuff using express-socket.io-session module:
 var session = require("express-session")({
@@ -24,6 +27,11 @@ app.use(session);
 io.use(sharedsession(session, {
     autoSave:true   // ?
 }));
+
+// Start serving:
+server.listen(5000, function() {
+    console.log('listening on *:5000');
+});
 
 
 // Build default things when server starts:
@@ -103,9 +111,9 @@ var comms = {
         io.to(socketid).emit('categoryPrompt', "");
     },
 
-    sendCard: function(socketid) {
-        //  Send out 1 card per player
-        io.to(socketid).emit('yourCard', JSON.stringify(game.theDeck.getNextCard()));
+    sendCard: function(player, card) {
+        //  Let a player see his top card:
+        io.to(player.sockid).emit('yourCard', JSON.stringify(card));
     }
 };
 
@@ -169,15 +177,4 @@ io.on('connection', function(socket){
         comms.updatePlayerList();
     });
 
-});
-
-
-// Always serve the main html file to visitors:
-app.get('/', function(request, response) {
-    response.sendFile('display.html', {root: __dirname + '/public/'});
-});
-
-// Start serving:
-http.listen(5000, function() {
-    console.log('listening on *:5000');
 });

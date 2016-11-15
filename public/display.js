@@ -31,6 +31,7 @@ var display = (function() {
     }
 
     function renderCountry(cdata) {
+        setFlag(cdata.code);
         var $card = $(".card");
         $card.find('h3').html(cdata.name);
         $card.find('h4:first-of-type span').html(cdata.capital.name);
@@ -82,7 +83,7 @@ var display = (function() {
                 return nf.format(number) + 'º';
             case 'percent':
                 nf = new Intl.NumberFormat({ style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 });    // .1
-                return nf.format(number);
+                return nf.format(number) + '%';
             case 'money':
                 nf = new Intl.NumberFormat({ style: 'currency', currency: '$', maximumFractionDigits: 0 });
                 return nf.format(number);
@@ -92,7 +93,7 @@ var display = (function() {
     }
 
     function renderPlayers(playerList) {
-        console.log("Re-rendering playerList");
+        //console.log("Re-rendering playerList");
         var $list1 = $("#player-list .playing"),
             $list2 = $("#player-list .waiting");
         // Clear out:
@@ -138,12 +139,32 @@ var display = (function() {
     }
 
     function renderOutput(data) {
-        var $box = $("#output-box");
-        // Build new line:
-        var span = $("<span>").html(data);
+        var $box = $("#output-box"),
+            span = "";
+        if (data === "<hr>") {
+            span = $("<hr>");
+        }
+        else {
+            // Build new line:
+            span = $("<span>").html(data);
+        }
         span.appendTo($box);
         // Auto-scrolldown:
         $box.scrollTop($box[0].scrollHeight);
+    }
+
+    function setFlag(code) {
+        // Convert NA code to ISO code:
+        var imgSrc;
+        try {
+            imgSrc = "/flag_icons/gif/" + window.codesTable[code] + ".gif";
+        }
+        catch (e) {
+            imgSrc = "/flag_icons/noflag.gif";
+        }
+        console.log(imgSrc);
+        // Insert into flag holder element:
+        $(".card .flag").html('<img src="'+ imgSrc +'">');
     }
 
     // Expose publicly:
@@ -156,7 +177,6 @@ var display = (function() {
         endYourTurn: endYourTurn,
         renderOutput: renderOutput
     };
-
 }());
 
 
@@ -168,6 +188,27 @@ $(function() {
         // Send decision to socket.io server:
         socket.emit('categoryPicked', evt.target.name);
         return false;
+    });
+
+    // Load country codes lookup table from CSV file:
+    $.ajax({
+        type: "GET",
+        url: "country-codes-lookup.csv",
+        dataType: "text",
+        success: function(data) {
+            // Convert CSV data to JS object:
+            var allTextLines = data.split(/\r/);   //?
+            console.log(allTextLines.length + " codes found.");
+            window.codesTable = {};
+
+            for (var i = 0; i < allTextLines.length; i++) {
+                var codes = allTextLines[i].split(',');
+                if (codes.length === 2) {
+                    window.codesTable[codes[0]] = codes[1];
+                }
+            }
+            console.log("Table generated:", window.codesTable);
+        }
     });
 });
 
@@ -196,18 +237,18 @@ socket.on('categoryPrompt', function() {
 });
 
 socket.on('playerList', function(data) {
-    console.log(data);
+    //console.log('playerList', data);
     var playerList = JSON.parse(data);
     display.renderPlayers(playerList);
 });
 
 socket.on('yourCard', function(data) {
-    console.log(data);
-    var cdata = JSON.parse(data);
-    display.renderCountry(cdata);
+    //console.log('yourCard', data);
+    var country = JSON.parse(data);
+    display.renderCountry(country);
 });
 
 socket.on('output', function(data) {
-    console.log(data);
+    //console.log('output', data);
     display.renderOutput(data);
 });

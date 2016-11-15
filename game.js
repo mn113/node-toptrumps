@@ -14,7 +14,8 @@ class Card {
         // Account for name aberrations:
         if (!this.name) { this.name = Utility.assignOrNull(countryJSON, "Government", "Country name", "Dutch short form"); }
         this.capital = {};
-        this.capital.name = Utility.assignOrNull(countryJSON, "Government", "Capital", "name");
+        var capname = Utility.assignOrNull(countryJSON, "Government", "Capital", "name");
+        this.capital.name = capname ? capname.split(/[(,;\.\-\[]/)[0] : "unknown";
         this.capital.coords = Utility.assignOrNull(countryJSON, "Government", "Capital", "geographic coordinates");
         // Extract the lat and long values from coordinate string (also absolutify them):
         var coords = this.capital.coords ? this.capital.coords.split(",") : null;   // length 2
@@ -85,8 +86,10 @@ class Card {
 
         // Register in Deck
     }
-    // Methods:
 
+    getProperty() {
+
+    }
 }
 
 // Define a deck:
@@ -95,14 +98,6 @@ class Deck {
         this.cards = [];
     }
 
-    /*get cards() {
-        return this.cards;
-    }
-
-    set cards(newCards) {
-        this.cards = newCards;
-    }
-    */
     addCard(card) {
         this.cards.push(card);
     }
@@ -290,7 +285,9 @@ class Gameloop {
         this.comms.updateGameText("Round " + this.round + ':');
 
         // Play cards:
-        this.playRoundPart1();  // -> waitForCategory() -> playRoundPart2 -> end of 3-part loop
+        setTimeout(() => {
+            this.playRoundPart1();  // -> waitForCategory() -> playRoundPart2 -> end of 3-part loop
+        }, 500);
     }
 
     addWaitingPlayers() {
@@ -305,10 +302,11 @@ class Gameloop {
     playRoundPart1() {
         // Players play their cards into the "pot":
         this.playerList.forEach(player => {
-            this.roundCards.push(player.playCard());
+            var card = player.playCard();
+            this.roundCards.push(card);
 
             // Also let everybody see their top card:
-            this.comms.sendCard(player.sockid);
+            this.comms.sendCard(player, card);
         });
 
         // Somebody must now choose a category:
@@ -357,7 +355,8 @@ class Gameloop {
             winningPlayer = this.playerList[windex];
         this.lastWinner = winningPlayer;
 
-        this.comms.updateGameText("<span class='player'>" + winningPlayer.name + "</span> won with <span class='country'>" + winningCard.name + "</span> and gained " + (this.roundCards.length - 1) + " cards.");
+        this.comms.updateGameText("<span class='player'>" + winningPlayer.name + "</span> won with <span class='country'>" + winningCard.name + "</span> and gained " + (this.roundCards.length - 1) + " card(s).");
+        this.lastWinner.wins++;
         // Reassign all played cards to winner:
         this.roundCards.forEach(card => {
             winningPlayer.receiveCard(card);
@@ -369,7 +368,9 @@ class Gameloop {
         this.category = null;
         this.round++;
         // Back to the beginning of the Gameloop!
-        this.run();
+        setTimeout(() => {
+            this.run();
+        }, 500);
     }
 }
 

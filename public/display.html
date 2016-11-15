@@ -15,11 +15,11 @@
 </head>
 <body>
     <div id="msg" class="alert alert-info" role="alert">Your turn! Choose a category...<span id="countdown"></span></div>
-    <div class=".container-fluid">
-        <header>
-            <h1>Top Trumps - World Factbook Edition</h1>
-        </header>
+    <header>
+        <h1>Top Trumps - World Factbook Edition</h1>
+    </header>
 
+    <div id="main" class=".container-fluid">
         <section id="output">
             <h2>Output</h2>
             <pre><code id="output-box"></code></pre>
@@ -38,6 +38,7 @@
         <section id="card">
             <h2>Your next card</h2>
             <div class="card" data-is-your-turn="false">
+                <span class="flag"></span>
                 <h3>Country</h3>
                 <h4>Capital: <span></span></h4>
                 <button type="submit" name="capital.lat">Latitude: <span></span></button>
@@ -54,21 +55,24 @@
                 <button type="submit" name="borders.land">Land: <span></span></button>
                 <button type="submit" name="borders.coast">Coast: <span></span></button>
                 <button type="submit" name="borders.number">Number: <span></span></button>
+                <h4>Population</h4>
+                <button type="submit" name="population.number">Population: <span></span></button>
+                <button type="submit" name="population.density">Density: <span></span></button>
+                <br>
+                <button type="submit" name="population.lgurban">Largest urban area: <span></span></button>
+                <br>
+                <button type="submit" name="population.lifexp">Life expectancy: <span></span></button>
+                <button type="submit" name="population.medage">Median age: <span></span></button>
+                <br>
+                <button type="submit" name="population.youngest">Youth (0-14): <span></span></button>
+                <button type="submit" name="population.oldest">Old-aged (65+): <span></span></button>
+                <h4>Economy</h4>
+                <button type="submit" name="gdp.net">GDP: <span></span></button>
+                <button type="submit" name="gdp.percapita">GDP per capita: <span></span></button>
                 <h4>Transportation</h4>
                 <button type="submit" name="transport.road">Road: <span></span></button>
                 <button type="submit" name="transport.rail">Rail: <span></span></button>
                 <button type="submit" name="transport.water">Water: <span></span></button>
-                <h4>Economy</h4>
-                <button type="submit" name="gdp.net">GDP: <span></span></button>
-                <button type="submit" name="gdp.percapita">GDP per capita: <span></span></button>
-                <h4>Population</h4>
-                <button type="submit" name="population.number">Population: <span></span></button>
-                <button type="submit" name="population.density">Density: <span></span></button>
-                <button type="submit" name="population.lgurban">Largest urban area: <span></span></button>
-                <button type="submit" name="population.lifexp">Life expectancy: <span></span></button>
-                <button type="submit" name="population.youngest">Youth (0-14): <span></span></button>
-                <button type="submit" name="population.oldest">Old-aged (65+): <span></span></button>
-                <button type="submit" name="population.medage">Median age: <span></span></button>
             </div>
         </section>
     </div>
