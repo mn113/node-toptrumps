@@ -27,7 +27,7 @@ io.use(sharedsession(session, {
 
 
 // Build default things when server starts:
-var computer = new game.Player("Computer", true); // NEEDS TO BE SINGLETON
+var computer = computer || new game.Player("Computer", true); // Singleton
 game.players = {
     "active": [computer],
     "waiting": []
@@ -53,10 +53,17 @@ fs.readdir(baseDir, (err, files) => {
 // Define all Server -> Client broadcast functions:
 var comms = {
 
-    namePrompt: function(socketid) {
-        // Send prompt to this user only:
-        console.log("sending namePrompt to", socketid);
-        io.to(socketid).emit('namePrompt', "");   // NOT WORKING
+    // To every user:
+    announcePlayer: function(player, status) {
+        //  Announce joins/leaves
+        switch (status) {
+            case 'in':
+                io.emit('output', "<span class='player'>" + player.name + "</span> joined the game.");
+                break;
+            case 'out':
+                io.emit('output', "<span class='player'>" + player.name + "</span> left the game.");
+                break;
+        }
     },
 
     updatePlayerList: function() {
@@ -64,35 +71,10 @@ var comms = {
         io.emit('playerList', JSON.stringify(game.players));
     },
 
-    announcePlayer: function(player, status) {
-        //  Announce joins/leaves
-        switch (status) {
-            case 'in':
-                io.emit('output', player.name + "joined the game.");
-                break;
-            case 'out':
-                io.emit('output', player.name + "left the game.");
-                break;
-        }
+    updateGameText: function(clientText, clientAction) {
+        io.emit('output', clientText);
+        io.emit('action', clientAction);
     },
-
-    updateGameText: function(text) {
-        io.emit('output', text);
-/*        switch (type) {
-            case 'roundStart':
-                //  Announce each round start
-                io.emit('output', "Round " + game.loop.round + " starting...");
-                break;
-            case 'categorySet':
-                //  Announce category choice
-                io.emit('output', game.loop.lastWinner.name + " chose category " + game.loop.category);
-                break;
-            case 'roundOver':
-                //  Announce winner
-                io.emit('output', game.loop.lastWinner.name + " won that round and took " + game.loop.roundCards.length + " cards.");
-                break;
-        }
-*/    },
 
     updateRoundStats: function() {
         //  Announce round card stats
@@ -104,14 +86,20 @@ var comms = {
         io.emit('roundStats', stats);
     },
 
-    sendCard: function(socketid) {
-        //  Send out 1 card per player
-        io.to(socketid).emit('yourCard', JSON.stringify(game.theDeck.getNextCard()));
+    // To a specific user:
+    namePrompt: function(socketid) {
+        // Send prompt to this user only:
+        io.to(socketid).emit('namePrompt', "");
     },
 
     categoryPrompt: function(socketid) {
         // Send prompt to this user only:
-        io.to(socketid).emit('categoryPrompt', null);
+        io.to(socketid).emit('categoryPrompt', "");
+    },
+
+    sendCard: function(socketid) {
+        //  Send out 1 card per player
+        io.to(socketid).emit('yourCard', JSON.stringify(game.theDeck.getNextCard()));
     }
 };
 
@@ -150,7 +138,7 @@ io.on('connection', function(socket){
         if (typeof game.loop === "undefined") {
             game.theDeck.shuffle();
             game.theDeck.dealCards(game.players.active, 25);
-            game.loop = new game.Gameloop(game.players);
+            game.loop = new game.Gameloop(game.players, comms);
             game.loop.run();
         }
         console.log(game.players);

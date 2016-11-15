@@ -58,6 +58,9 @@ section#output {
     color: white;
     display: block;
 }
+#ouput-box p {
+    margin: 0;
+}
 #msg {
     width: 100%;
     text-align: center;
@@ -85,7 +88,9 @@ h3 {
 h4 {
     font-size: 1.2rem;
 }
-
+.player {
+    color: yellow;
+}
 
 /*******
 /* LIST
@@ -95,7 +100,7 @@ h4 {
     list-style-position: inside;
     width: 100%;
     padding: 0.5em;
-    background: #ccc;
+    background: rgba(200,200,200,0.8);
     border: 1px solid #999;
     min-height: 100px;
 }
@@ -104,7 +109,7 @@ h4 {
     padding-left: 0;
 }
 #player-list li.active {
-    background: yellow;
+    background: #7dd3e6;
 }
 #player-list li strong {
     width: 50%;
