@@ -281,13 +281,13 @@ class Gameloop {
         // Preamble:
         this.addWaitingPlayers();
         console.log("Round:", this.round);
-        this.comms.updateGameText("<hr>");
-        this.comms.updateGameText("Round " + this.round + ':');
+        this.comms.all.updateGameText("<hr>", false);
+        this.comms.all.updateGameText("Round " + this.round + ':');
 
         // Play cards:
         setTimeout(() => {
             this.playRoundPart1();  // -> waitForCategory() -> playRoundPart2 -> end of 3-part loop
-        }, 500);
+        }, 750);
     }
 
     addWaitingPlayers() {
@@ -295,7 +295,7 @@ class Gameloop {
         while (this.waitList.length > 0) {
             var newPlayer = this.waitList.shift();
             this.playerList.push(newPlayer);
-            this.comms.announcePlayer(newPlayer, 'in');
+            this.comms.all.announcePlayer(newPlayer, 'in');
         }
     }
 
@@ -306,11 +306,11 @@ class Gameloop {
             this.roundCards.push(card);
 
             // Also let everybody see their top card:
-            this.comms.sendCard(player, card);
+            this.comms.specific.sendCard(player, card);
         });
 
         // Somebody must now choose a category:
-        this.comms.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> to choose category...");
+        this.comms.all.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> to choose category...", false);
         this.waitForCategory();
     }
 
@@ -323,7 +323,7 @@ class Gameloop {
 
         // While we wait, ask for user input:
         if (this.lastWinner && this.lastWinner.cards[0]) {
-            this.comms.categoryPrompt(this.lastWinner.sockid, this.lastWinner.cards[0]);
+            this.comms.specific.categoryPrompt(this.lastWinner.sockid, this.lastWinner.cards[0]);
         }
         else {
             // If no winner, Computer chooses immediately:
@@ -335,7 +335,7 @@ class Gameloop {
 
     setCategory(cat) {
         this.category = cat;
-        this.comms.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> chose category <span class='category'>" + cat + "</span>");
+        this.comms.all.updateGameText(" <span class='category'>" + cat + "</span> chosen.");
         this.playRoundPart2();
     }
 
@@ -343,34 +343,42 @@ class Gameloop {
         // TODO! randomisation
         if (!this.category) {
             this.category = "population.number";
-            this.comms.updateGameText("Computer chose category <span class='category'>" + this.category + "</span>");
+            this.comms.all.updateGameText(" <span class='category'>" + this.category + "</span> chosen.");
         }
     }
 
     playRoundPart2() {
         // Compare cards:
-        this.comms.updateRoundStats();
+        this.comms.all.updateRoundStats();
         var winningCard = Utility.compareCards(this.roundCards, this.category),
             windex = this.roundCards.indexOf(winningCard),
             winningPlayer = this.playerList[windex];
         this.lastWinner = winningPlayer;
 
-        this.comms.updateGameText("<span class='player'>" + winningPlayer.name + "</span> won with <span class='country'>" + winningCard.name + "</span> and gained " + (this.roundCards.length - 1) + " card(s).");
-        this.lastWinner.wins++;
+        // Add delay:
+        setTimeout(() => {
+            this.playRoundPart3(winningCard);
+        }, 1000);
+    }
+
+    playRoundPart3(winningCard) {
         // Reassign all played cards to winner:
         this.roundCards.forEach(card => {
-            winningPlayer.receiveCard(card);
+            this.lastWinner.receiveCard(card);
         });
-        this.roundCards = [];
+        this.lastWinner.wins++;
+        this.comms.all.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> won with <span class='country'>" + winningCard.name + "</span> and gained " + (this.roundCards.length - 1) + " card(s).");
+        this.comms.all.updatePlayerList();
 
         // Round over!
-        this.comms.updatePlayerList();
+        this.roundCards = [];
         this.category = null;
         this.round++;
-        // Back to the beginning of the Gameloop!
+
+        // Delay, then back to the beginning of the Gameloop!
         setTimeout(() => {
             this.run();
-        }, 500);
+        }, 2000);
     }
 }
 

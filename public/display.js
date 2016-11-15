@@ -80,7 +80,7 @@ var display = (function() {
                 return nf.format(number) + ' years';
             case 'degrees':
                 nf = new Intl.NumberFormat({ maximumFractionDigits: 1 });    // .1
-                return nf.format(number) + 'º';
+                return nf.format(number) + 'º ';
             case 'percent':
                 nf = new Intl.NumberFormat({ style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 });    // .1
                 return nf.format(number) + '%';
@@ -103,8 +103,8 @@ var display = (function() {
             // Build new <li>:
             var li = $("<li>").attr("id", player.id);
             $("<strong>").html(player.name).appendTo(li);
-            $("<span>").addClass("card-tot").html(player.cards.length + '&nbsp;cards').appendTo(li);
             $("<span>").addClass("win-tot").html(player.wins + '&nbsp;wins').appendTo(li);
+            $("<span>").addClass("card-tot").html(player.cards.length + '&nbsp;cards').appendTo(li);
             li.appendTo($list1);
         });
         playerList.waiting.forEach(player => {
@@ -139,16 +139,17 @@ var display = (function() {
     }
 
     function renderOutput(data) {
-        var $box = $("#output-box"),
-            span = "";
+        var $box = $("#output-box");
+
         if (data === "<hr>") {
-            span = $("<hr>");
+            // Horizontal rule:
+            $("<hr>").addClass("dashed-line").appendTo($box);
         }
         else {
             // Build new line:
-            span = $("<span>").html(data);
+            var span = $("<span>").html(data);
+            span.appendTo($box);
         }
-        span.appendTo($box);
         // Auto-scrolldown:
         $box.scrollTop($box[0].scrollHeight);
     }

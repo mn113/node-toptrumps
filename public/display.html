@@ -4,14 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Top Trumps App @ Node Knockout 2016</title>
+    <title>Top Trumps App</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css">
     <link rel="stylesheet" href="display.css">
 
     <script src="/socket.io/socket.io.js"></script>
-    <!--script src="https://cdn.socket.io/socket.io-1.4.5.js"></script-->
-    <script></script>
 </head>
 <body>
     <div id="msg" class="alert alert-info" role="alert">Your turn! Choose a category...<span id="countdown"></span></div>
@@ -38,42 +36,59 @@
         <section id="card">
             <h2>Your next card</h2>
             <div class="card" data-is-your-turn="false">
-                <span class="flag"></span>
-                <h3>Country</h3>
-                <h4>Capital: <span></span></h4>
-                <button type="submit" name="capital.lat">Latitude: <span></span></button>
-                <button type="submit" name="capital.long">Longitude: <span></span></button>
-                <h4>Area</h4>
-                <button type="submit" name="area.total">Total area: <span></span></button>
-                <button type="submit" name="area.land">Land area: <span></span></button>
-                <button type="submit" name="area.water">Water area: <span></span></button>
-                <h4>Elevation</h4>
-                <button type="submit" name="elevation.highest">Highest: <span></span></button>
-                <button type="submit" name="elevation.lowest">Lowest: <span></span></button>
-                <button type="submit" name="elevation.mean">Mean: <span></span></button>
-                <h4>Borders</h4>
-                <button type="submit" name="borders.land">Land: <span></span></button>
-                <button type="submit" name="borders.coast">Coast: <span></span></button>
-                <button type="submit" name="borders.number">Number: <span></span></button>
-                <h4>Population</h4>
-                <button type="submit" name="population.number">Population: <span></span></button>
-                <button type="submit" name="population.density">Density: <span></span></button>
-                <br>
-                <button type="submit" name="population.lgurban">Largest urban area: <span></span></button>
-                <br>
-                <button type="submit" name="population.lifexp">Life expectancy: <span></span></button>
-                <button type="submit" name="population.medage">Median age: <span></span></button>
-                <br>
-                <button type="submit" name="population.youngest">Youth (0-14): <span></span></button>
-                <button type="submit" name="population.oldest">Old-aged (65+): <span></span></button>
-                <h4>Economy</h4>
-                <button type="submit" name="gdp.net">GDP: <span></span></button>
-                <button type="submit" name="gdp.percapita">GDP per capita: <span></span></button>
-                <h4>Transportation</h4>
-                <button type="submit" name="transport.road">Road: <span></span></button>
-                <button type="submit" name="transport.rail">Rail: <span></span></button>
-                <button type="submit" name="transport.water">Water: <span></span></button>
+                <div>
+                    <span class="flag"></span>
+                    <h3>Country</h3>
+                </div>
+                <div>
+                    <h4>Capital: <span></span></h4>
+                    <button type="submit" name="capital.lat">Latitude: <span></span></button>
+                    <button type="submit" name="capital.long">Longitude: <span></span></button>
+                </div>
+                <div>
+                    <h4>Area</h4>
+                    <button type="submit" name="area.total">Total area: <span></span></button>
+                    <button type="submit" name="area.land">Land area: <span></span></button>
+                    <button type="submit" name="area.water">Water area: <span></span></button>
+                </div>
+                <div>
+                    <h4>Elevation</h4>
+                    <button type="submit" name="elevation.highest">Highest: <span></span></button>
+                    <button type="submit" name="elevation.lowest">Lowest: <span></span></button>
+                    <button type="submit" name="elevation.mean">Mean: <span></span></button>
+                </div>
+                <div>
+                    <h4>Borders</h4>
+                    <button type="submit" name="borders.land">Land: <span></span></button>
+                    <button type="submit" name="borders.coast">Coast: <span></span></button>
+                    <button type="submit" name="borders.number">Number: <span></span></button>
+                </div>
+                <div>
+                    <h4>Population</h4>
+                    <button type="submit" name="population.number">Population: <span></span></button>
+                    <button type="submit" name="population.density">Density: <span></span></button>
+                    <br>
+                    <button type="submit" name="population.lgurban">Largest urban area: <span></span></button>
+                    <br>
+                    <button type="submit" name="population.lifexp">Life expectancy: <span></span></button>
+                    <button type="submit" name="population.medage">Median age: <span></span></button>
+                    <br>
+                    <button type="submit" name="population.youngest">Youth (0-14): <span></span></button>
+                    <button type="submit" name="population.oldest">Old-aged (65+): <span></span></button>
+                </div>
+                <div>
+                    <h4>Economy</h4>
+                    <button type="submit" name="gdp.net">GDP: <span></span></button>
+                    <button type="submit" name="gdp.percapita">GDP per capita: <span></span></button>
+                </div>
+                <div>
+                    <h4>Transportation</h4>
+                    <button type="submit" name="transport.road">Road: <span></span></button>
+                    <button type="submit" name="transport.rail">Rail: <span></span></button>
+                    <button type="submit" name="transport.water">Water: <span></span></button>
+                </div>
             </div>
+            <p class="footer">Data from the <a href="https://www.cia.gov/library/publications/the-world-factbook/" target="_blank">CIA World Factbook</a> via <a href="https://github.com/opendatajson/factbook.json" target="_blank">Github</a></p>
         </section>
     </div>
     <div id="modal"></div>

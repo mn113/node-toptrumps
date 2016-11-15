@@ -23,6 +23,7 @@ header {
     background: rgba(80,130,255,0.8) url(header_icons_shadowed.png) 5px 3px no-repeat;
     margin-bottom: 1em;
     padding: 0.5em;
+    box-shadow: 0 0 6px rgba(0,0,0,0.4);
 }
 header h1 {
     color: white;
@@ -36,7 +37,7 @@ section {
     background: rgba(239,239,239,0.75);
     border: 1px solid #999;
     border-radius: 8px;
-    box-shadow: 0 0 7px rgba(0,0,0,0.5);
+    box-shadow: 0 0 6px rgba(0,0,0,0.4);
 }
 section#player-list {
     float: left;
@@ -50,9 +51,6 @@ section#output {
     width: auto;
     clear: both;
 }
-.card {
-    padding: 0.5em 1em;
-}
 #output pre code {
     display: block;
     width: 100%;
@@ -61,24 +59,17 @@ section#output {
     overflow-y: scroll;
     background: rgba(80,80,80,0.75);
     color: white;
+    font-size: 0.9em;
     box-shadow: inset 2px 4px 2px 0px #666;
     border: 1px solid white;
     border-top: black;
     border-left: black;
-}
-#ouput-box hr {
-    height: 0;
-    margin: 0;
-    border-bottom: 1px dashed #ccc;
 }
 #msg {
     width: 100%;
     text-align: center;
     border-bottom: 1px solid #666;
     display: none;
-}
-.flag {
-    float: left;
 }
 
 
@@ -90,22 +81,60 @@ h1 {
     font-weight: bold;
     color: white;
     text-shadow: -1px -1px 1px #512262;
-
 }
 h2 {
     font-size: 1.4rem;
 }
 h3 {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
 }
 h4 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+}
+
+
+/*********
+/* OUTPUT
+/*********/
+hr.dashed-line {
+    height: 0;
+    margin: 0;
+    border-bottom: 1px dashed #ccc !important;
 }
 .player { color: yellow; }
 .category,
 .data { color: turquoise; }
 .country {color: salmon; }
 
+
+/*******
+/* CARD
+/*******/
+.card {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.flag {
+    float: left;
+    margin-right: 4px;
+}
+.card div {
+    padding: 0.5em 1em;
+    border-bottom: 1px solid #ccc;
+}
+.card div:last-child {
+    border: 0;
+}
+.card button {
+    margin-bottom: 0.4em;
+}
+.card button:hover {
+    background: turquoise;
+}
+.footer {
+    font-size: 0.7rem;
+    text-align: center;
+}
 
 /*******
 /* LIST
@@ -117,7 +146,7 @@ h4 {
     padding: 0.5em;
     background: rgba(200,200,200,0.8);
     border: 1px solid #999;
-    min-height: 100px;
+    min-height: 75px;
 }
 #player-list li {
     width: 100%;
@@ -132,12 +161,18 @@ h4 {
 span.card-tot,
 span.win-tot{
     width: 25%;
+    float: right;
     font-size: 0.8em;
+    line-height: 1.25em;
     color: #666;
     margin-left: 0.5em;
+    padding-top: 5px;
 }
 
 
+/********
+/* MODAL
+/********/
 .modal-header,
 .modal-body,
 .modal-footer {

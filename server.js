@@ -63,57 +63,58 @@ fs.readdir(baseDir, (err, files) => {
 var comms = {
 
     // To every user:
-    announcePlayer: function(player, status) {
-        //  Announce joins/leaves
-        switch (status) {
-            case 'in':
+    all: {
+        announcePlayer: function(player, status) {
+            //  Announce joins/leaves:
+            if (status === 'in') {
                 this.updateGameText("<span class='player'>" + player.name + "</span> joined the game.");
-                break;
-            case 'out':
+            }
+            else if (status === 'out') {
                 this.updateGameText("<span class='player'>" + player.name + "</span> left the game.");
-                break;
-        }
-    },
+            }
+        },
 
-    updatePlayerList: function() {
-        //  Update player list
-        io.emit('playerList', JSON.stringify(game.players));
-    },
+        updatePlayerList: function() {
+            //  Update player list
+            io.emit('playerList', JSON.stringify(game.players));
+        },
 
-    updateGameText: function(clientText, clientAction) {
-        io.emit('output', clientText + '\r\n');
-        io.emit('action', clientAction);
-    },
+        updateGameText: function(clientText, newLine = true) {
+            if (newLine) clientText += '\r\n';
+            io.emit('output', clientText);
+        },
 
-    updateRoundStats: function() {
-        //  Announce round card stats:
-        game.loop.roundCards.forEach(card => {
-            var name = "<span class='country'>" + card.name + "</span>";
-            var value = "<span class='data'>" + game.Utility.fetchFromObject(card, game.loop.category) + "</span>";
-            comms.updateGameText(name + ": " + value);
-        });
+        updateRoundStats: function() {
+            //  Announce round card stats:
+            game.loop.roundCards.forEach(card => {
+                var name = "<span class='country'>" + card.name + "</span>";
+                var value = "<span class='data'>" + game.Utility.fetchFromObject(card, game.loop.category) + "</span>";
+                comms.all.updateGameText("&gt; " + name + ": " + value);
+            });
+        },
     },
-
 
     // To a specific user:
-    announceGameStart: function(socketid) {
-        io.to(socketid).emit('gameStart', "");
-    },
+    specific: {
+        announceGameStart: function(socketid) {
+            io.to(socketid).emit('gameStart', "");
+        },
 
-    namePrompt: function(socketid) {
-        // Send prompt to this user only:
-        io.to(socketid).emit('namePrompt', "");
-    },
+        namePrompt: function(socketid) {
+            // Send prompt to this user only:
+            io.to(socketid).emit('namePrompt', "");
+        },
 
-    categoryPrompt: function(socketid, card) {
-        // Send prompt to this user only:
-        io.to(socketid).emit('output', "You have <span class='country'>" + card.name + "</span>. Please choose your category.\r\n");
-        io.to(socketid).emit('categoryPrompt', "");
-    },
+        categoryPrompt: function(socketid, card) {
+            // Send prompt to this user only:
+            io.to(socketid).emit('output', "You have <span class='country'>" + card.name + "</span>. Please choose your category...", false);
+            io.to(socketid).emit('categoryPrompt', "");
+        },
 
-    sendCard: function(player, card) {
-        //  Let a player see his top card:
-        io.to(player.sockid).emit('yourCard', JSON.stringify(card));
+        sendCard: function(player, card) {
+            //  Let a player see his top card:
+            io.to(player.sockid).emit('yourCard', JSON.stringify(card));
+        }
     }
 };
 
@@ -133,7 +134,7 @@ io.on('connection', function(socket){
         }
     });
     // sessionId was unused, allow to join:
-    comms.namePrompt(socket.id);
+    comms.specific.namePrompt(socket.id);
 
     // Listen to clients:
     socket.on('myNameIs', function(inputName) {
@@ -152,7 +153,7 @@ io.on('connection', function(socket){
         // Register player:
         game.theDeck.dealCards([socket.player], 25);
         game.players.waiting.push(socket.player);
-        comms.updatePlayerList();
+        comms.all.updatePlayerList();
 
         // Start game loop if not yet running:
         if (typeof game.loop === "undefined") {
@@ -174,7 +175,7 @@ io.on('connection', function(socket){
         // Splice him out of both players arrays:
         game.players.active.splice(game.players.active.indexOf(socket.player), 1);
         game.players.waiting.splice(game.players.waiting.indexOf(socket.player), 1);    // SMELLY
-        comms.updatePlayerList();
+        comms.all.updatePlayerList();
     });
 
 });
