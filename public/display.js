@@ -44,7 +44,7 @@ var display = (function() {
         $card.find('button[name="elevation.mean"] span').html(formatNumber(cdata.elevation.mean, 'height'));
         $card.find('button[name="borders.land"] span').html(formatNumber(cdata.borders.land, 'distance'));
         $card.find('button[name="borders.coast"] span').html(formatNumber(cdata.borders.coast, 'distance'));
-        $card.find('button[name="borders.number"] span').html(cdata.borders.number +'('+ cdata.borders.list +')');
+        $card.find('button[name="borders.number"] span').html(cdata.borders.number);
         $card.find('button[name="transport.road"] span').html(formatNumber(cdata.transport.road, 'distance'));
         $card.find('button[name="transport.rail"] span').html(formatNumber(cdata.transport.rail, 'distance'));
         $card.find('button[name="transport.water"] span').html(formatNumber(cdata.transport.water, 'distance'));
@@ -54,34 +54,40 @@ var display = (function() {
         $card.find('button[name="population.density"] span').html(formatNumber(cdata.population.density, 'density'));
         $card.find('button[name="population.lgurban"] span').html(formatNumber(cdata.population.lgurban));
         $card.find('button[name="population.lifexp"] span').html(formatNumber(cdata.population.lifexp, 'age'));
-        $card.find('button[name="population.youngest"] span').html(formatNumber(cdata.population.youngest, 'age'));
-        $card.find('button[name="population.oldest"] span').html(formatNumber(cdata.population.oldest, 'age'));
         $card.find('button[name="population.medage"] span').html(formatNumber(cdata.population.medage, 'age'));
+        $card.find('button[name="population.youngest"] span').html(formatNumber(cdata.population.youngest, 'percent'));
+        $card.find('button[name="population.oldest"] span').html(formatNumber(cdata.population.oldest, 'percent'));
     }
 
     function formatNumber(number, type) {
         if (number === null) {
             return "unknown";
         }
+        // Perform formatting based on requested type:
+        var nf = new Intl.NumberFormat({ maximumFractionDigits: 0 });   // round it off
         switch (type) {
             case 'distance':
-                return number.toFixed(0) + 'km';
+                return nf.format(number) + 'm';
             case 'height':
-                return number.toFixed(0) + 'm';
+                return nf.format(number) + 'm';
             case 'area':
-                return number.toFixed(0) + 'km&sup2;';
-            case 'percent':
-                return number.toFixed(1) + '%';
-            case 'money':
-                return '$' + number.toFixed(0) + '%';   // comma-ize?
-            case 'age':
-                return number.toFixed(1) + ' years';
+                return nf.format(number) + 'km&sup2;';
             case 'density':
-                return number.toFixed(1) + '/km&sup2;';
+                return nf.format(number) + '/km&sup2;';
+            case 'age':
+                nf = new Intl.NumberFormat({ minimumFractionDigits: 1, maximumFractionDigits: 1 });    // .1
+                return nf.format(number) + ' years';
             case 'degrees':
-                return number.toFixed(2) + 'º';
+                nf = new Intl.NumberFormat({ maximumFractionDigits: 1 });    // .1
+                return nf.format(number) + 'º';
+            case 'percent':
+                nf = new Intl.NumberFormat({ style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 });    // .1
+                return nf.format(number);
+            case 'money':
+                nf = new Intl.NumberFormat({ style: 'currency', currency: '$', maximumFractionDigits: 0 });
+                return nf.format(number);
             default:
-                return number.toFixed(0);
+                return nf.format(number);
         }
     }
 
@@ -96,8 +102,8 @@ var display = (function() {
             // Build new <li>:
             var li = $("<li>").attr("id", player.id);
             $("<strong>").html(player.name).appendTo(li);
-            $("<span>").addClass("card-tot").html(player.cards.length + ' cards').appendTo(li);
-            $("<span>").addClass("win-tot").html(player.wins + ' wins').appendTo(li);
+            $("<span>").addClass("card-tot").html(player.cards.length + '&nbsp;cards').appendTo(li);
+            $("<span>").addClass("win-tot").html(player.wins + '&nbsp;wins').appendTo(li);
             li.appendTo($list1);
         });
         playerList.waiting.forEach(player => {
@@ -113,7 +119,7 @@ var display = (function() {
         $(".card button").prop( "disabled", false );
         // Message and timer:
         $(".msg").show();
-        var seconds = 4;
+        var seconds = 5;
         var countdown = setInterval(function() {
             seconds--;
             $("#countdown").html(seconds);
@@ -134,8 +140,10 @@ var display = (function() {
     function renderOutput(data) {
         var $box = $("#output-box");
         // Build new line:
-        var p = $("<p>").html(data);
-        p.appendTo($box);
+        var span = $("<span>").html(data);
+        span.appendTo($box);
+        // Auto-scrolldown:
+        $box.scrollTop($box[0].scrollHeight);
     }
 
     // Expose publicly:
@@ -167,13 +175,19 @@ $(function() {
 // Handle events from socket.io server:
 var socket = io();
 
-setInterval(function() {
-    document.title = socket.id;
-}, 5000);
+//setInterval(function() {
+//    document.title = socket.id;
+//}, 5000);
 
 socket.on('namePrompt', function() {
     console.log("received namePrompt");
     display.modalNamePrompt();
+});
+
+socket.on('gameStart', function() {
+    console.log("received gameStart");
+    // Clear previous games:
+    $("#output-box").html("");
 });
 
 socket.on('categoryPrompt', function() {

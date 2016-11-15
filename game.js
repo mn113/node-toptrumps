@@ -221,25 +221,32 @@ class Utility {
     // Compare an array of cards on a property and return winner:
     static compareCards(cards, prop) {
         cards.forEach(card => {
-            console.log(card.name, Utility.fetchFromObject(card, prop));
+            console.log(card.name, prop, Utility.fetchFromObject(card, prop));
         });
         // Pick winner:
-        var highest = cards.reduce((a,b) => {
-            // Test for nulls:
-            if (Utility.fetchFromObject(a, prop) === null) {
-                return b;
-            }
-            else if (Utility.fetchFromObject(b, prop) === null) {
-                return a;
-            }
-            // No nulls, compare values:
-            return (Utility.fetchFromObject(a, prop) > Utility.fetchFromObject(b, prop)) ? a : b;
-        });
+        try {
+            var highest = cards.reduce((a,b) => {
+                // Test for nulls:
+                if (Utility.fetchFromObject(a, prop) === null) {
+                    return b;
+                }
+                else if (Utility.fetchFromObject(b, prop) === null) {
+                    return a;
+                }
+                // No nulls, compare values:
+                return (Utility.fetchFromObject(a, prop) > Utility.fetchFromObject(b, prop)) ? a : b;
+            });
+
+            console.log(highest.name, "wins with", Utility.fetchFromObject(highest, prop));
+            return highest;
+        }
+        catch (e) {
+            return cards[0];    // quick fix
+        }
+        // TODO:
         //var lowest = cards.reduce((a,b) => {
         //    return (a < b) ? a : b;
         //});
-        console.log(highest.name, "wins with", Utility.fetchFromObject(highest, prop));
-        return highest;
     }
 }
 
@@ -250,17 +257,17 @@ class Gameloop {
     constructor (players, comms) {
         this.running = false;
         this.waitInterval = null;    // setInterval placeholder
-        this.playerList = players.active || [];
-        this.waitList = players.waiting || [];
-        this.round = 0;
+        this.playerList = players.active;
+        this.waitList = players.waiting;
+        this.round = 1;
         this.category = null;   // changes each round
         this.roundCards = [];
-        this.lastWinner = computer; // SHOULD DEFAULT TO COMPUTER
+        this.lastWinner = computer;
         this.comms = comms;     // injected dependency
 
         console.log("Gameloop initialised.");
-        console.log(this.playerList);
-        console.log(this.waitList);
+        //console.log(this.playerList);
+        //console.log(this.waitList);
     }
 
     run() {
@@ -279,10 +286,11 @@ class Gameloop {
         // Preamble:
         this.addWaitingPlayers();
         console.log("Round:", this.round);
+        this.comms.updateGameText("<hr>");
         this.comms.updateGameText("Round " + this.round + ':');
 
         // Play cards:
-        this.playRoundPart1();  // -> waitForCategory() -> playRoundPart2 -> end of while loop
+        this.playRoundPart1();  // -> waitForCategory() -> playRoundPart2 -> end of 3-part loop
     }
 
     addWaitingPlayers() {
@@ -313,11 +321,11 @@ class Gameloop {
         this.waitInterval = setInterval(function() {
             this.randomiseCategory();
             this.playRoundPart2();
-        }.bind(this), 3000);
+        }.bind(this), 4000);
 
         // While we wait, ask for user input:
-        if (this.lastWinner) {
-            this.comms.categoryPrompt(this.lastWinner.sockid);
+        if (this.lastWinner && this.lastWinner.cards[0]) {
+            this.comms.categoryPrompt(this.lastWinner.sockid, this.lastWinner.cards[0]);
         }
         else {
             // If no winner, Computer chooses immediately:
@@ -329,7 +337,7 @@ class Gameloop {
 
     setCategory(cat) {
         this.category = cat;
-        this.comms.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> chose category " + cat);
+        this.comms.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> chose category <span class='category'>" + cat + "</span>");
         this.playRoundPart2();
     }
 
@@ -337,18 +345,19 @@ class Gameloop {
         // TODO! randomisation
         if (!this.category) {
             this.category = "population.number";
-            this.comms.updateGameText("Computer chose category " + this.category);
+            this.comms.updateGameText("Computer chose category <span class='category'>" + this.category + "</span>");
         }
     }
 
     playRoundPart2() {
         // Compare cards:
+        this.comms.updateRoundStats();
         var winningCard = Utility.compareCards(this.roundCards, this.category),
             windex = this.roundCards.indexOf(winningCard),
             winningPlayer = this.playerList[windex];
         this.lastWinner = winningPlayer;
 
-        this.comms.updateGameText("<span class='player'>" + winningPlayer.name + "</span> won with " + winningCard.name);
+        this.comms.updateGameText("<span class='player'>" + winningPlayer.name + "</span> won with <span class='country'>" + winningCard.name + "</span> and gained " + (this.roundCards.length - 1) + " cards.");
         // Reassign all played cards to winner:
         this.roundCards.forEach(card => {
             winningPlayer.receiveCard(card);
@@ -356,6 +365,8 @@ class Gameloop {
         this.roundCards = [];
 
         // Round over!
+        this.comms.updatePlayerList();
+        this.category = null;
         this.round++;
         // Back to the beginning of the Gameloop!
         this.run();

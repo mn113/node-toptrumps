@@ -47,6 +47,7 @@ fs.readdir(baseDir, (err, files) => {
     });
     console.log(game.theDeck.cards.length + " countries loaded.");
     game.theDeck.shuffle();
+    game.theDeck.dealCards(game.players.active, 25);
 });
 
 
@@ -58,10 +59,10 @@ var comms = {
         //  Announce joins/leaves
         switch (status) {
             case 'in':
-                io.emit('output', "<span class='player'>" + player.name + "</span> joined the game.");
+                this.updateGameText("<span class='player'>" + player.name + "</span> joined the game.");
                 break;
             case 'out':
-                io.emit('output', "<span class='player'>" + player.name + "</span> left the game.");
+                this.updateGameText("<span class='player'>" + player.name + "</span> left the game.");
                 break;
         }
     },
@@ -72,28 +73,33 @@ var comms = {
     },
 
     updateGameText: function(clientText, clientAction) {
-        io.emit('output', clientText);
+        io.emit('output', clientText + '\r\n');
         io.emit('action', clientAction);
     },
 
     updateRoundStats: function() {
-        //  Announce round card stats
-        var stats = [];
+        //  Announce round card stats:
         game.loop.roundCards.forEach(card => {
-            // TODO! refactor...
-            stats.push(card.name + ": " + game.loop.category + ": " + game.Utility.fetchFromObject(card, game.loop.category));
+            var name = "<span class='country'>" + card.name + "</span>";
+            var value = "<span class='data'>" + game.Utility.fetchFromObject(card, game.loop.category) + "</span>";
+            comms.updateGameText(name + ": " + value);
         });
-        io.emit('roundStats', stats);
     },
 
+
     // To a specific user:
+    announceGameStart: function(socketid) {
+        io.to(socketid).emit('gameStart', "");
+    },
+
     namePrompt: function(socketid) {
         // Send prompt to this user only:
         io.to(socketid).emit('namePrompt', "");
     },
 
-    categoryPrompt: function(socketid) {
+    categoryPrompt: function(socketid, card) {
         // Send prompt to this user only:
+        io.to(socketid).emit('output', "You have <span class='country'>" + card.name + "</span>. Please choose your category.\r\n");
         io.to(socketid).emit('categoryPrompt', "");
     },
 
@@ -107,9 +113,8 @@ var comms = {
 // Socket.io:
 io.on('connection', function(socket){
 
-    console.log("new connection:", socket.handshake.sessionID);
     // Log connections made:
-    //console.log(socket.handshake);
+    console.log("new connection:", socket.handshake.sessionID);
     // Perform duplicate check:
     var allPlayers = game.players.active.concat(game.players.waiting);
     allPlayers.forEach(player => {
@@ -123,21 +128,26 @@ io.on('connection', function(socket){
     comms.namePrompt(socket.id);
 
     // Listen to clients:
-    socket.on('myNameIs', function(name) {
+    socket.on('myNameIs', function(inputName) {
         // Make a new player, add him, and update the game:
-        // TODO: check if name exists, and add suffix
-        socket.player = new game.Player(name);
+        // Check if name exists, and add suffix
+        allPlayers.forEach(existingPlayer => {
+            if (existingPlayer.name === inputName) {
+                inputName += '*';
+            }
+        });
+        // Create player & assign Socket.io ids:
+        socket.player = new game.Player(inputName);
         socket.player.sessid = socket.handshake.sessionID;
         socket.player.sockid = socket.id;
         console.log('a user connected: ' + socket.player.name + ' aka session ' + socket.player.sessid);
         // Register player:
+        game.theDeck.dealCards([socket.player], 25);
         game.players.waiting.push(socket.player);
         comms.updatePlayerList();
 
         // Start game loop if not yet running:
         if (typeof game.loop === "undefined") {
-            game.theDeck.shuffle();
-            game.theDeck.dealCards(game.players.active, 25);
             game.loop = new game.Gameloop(game.players, comms);
             game.loop.run();
         }
