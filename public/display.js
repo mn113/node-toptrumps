@@ -119,7 +119,7 @@ var display = (function() {
         // Enable buttons
         $(".card button").prop( "disabled", false );
         // Message and timer:
-        $(".msg").show();
+        $("#msg").show();
         var seconds = 5;
         var countdown = setInterval(function() {
             seconds--;
@@ -134,7 +134,7 @@ var display = (function() {
 
     function endYourTurn() {
         // Hide message & disable buttons:
-        $(".msg").hide();
+        $("#msg").hide();
         $(".card button").prop( "disabled", true );
     }
 
@@ -163,7 +163,7 @@ var display = (function() {
         catch (e) {
             imgSrc = "/flag_icons/noflag.gif";
         }
-        console.log(imgSrc);
+
         // Insert into flag holder element:
         $(".card .flag").html('<img src="'+ imgSrc +'">');
     }
@@ -185,10 +185,20 @@ var display = (function() {
 $(function() {
     // Event listeners:
     $('.card button').on('click', function(evt) {
-        console.log(evt.target.name);   // ok
+        evt.preventDefault();
+        var category = evt.currentTarget;
+
+        // Find the button itself (not the span):
+/*        if (evt.target === 'span') {
+            category = evt.target.parent.name;
+        }
+        else {
+            category = evt.target.name;
+        }*/
+        console.log(category);   // ok
+
         // Send decision to socket.io server:
-        socket.emit('categoryPicked', evt.target.name);
-        return false;
+        socket.emit('categoryPicked', category);
     });
 
     // Load country codes lookup table from CSV file:
@@ -199,7 +209,7 @@ $(function() {
         success: function(data) {
             // Convert CSV data to JS object:
             var allTextLines = data.split(/\r/);   //?
-            console.log(allTextLines.length + " codes found.");
+            console.info(allTextLines.length + " codes found.");
             window.codesTable = {};
 
             for (var i = 0; i < allTextLines.length; i++) {
@@ -208,7 +218,7 @@ $(function() {
                     window.codesTable[codes[0]] = codes[1];
                 }
             }
-            console.log("Table generated:", window.codesTable);
+            console.info("Table generated:", window.codesTable);
         }
     });
 });
@@ -226,11 +236,11 @@ socket.on('namePrompt', function() {
     display.modalNamePrompt();
 });
 
-socket.on('gameStart', function() {
+/*socket.on('gameStart', function() {
     console.log("received gameStart");
     // Clear previous games:
     $("#output-box").html("");
-});
+});*/
 
 socket.on('categoryPrompt', function() {
     console.log("received categoryPrompt");

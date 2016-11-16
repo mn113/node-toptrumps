@@ -286,7 +286,7 @@ class Gameloop {
 
         // Play cards:
         setTimeout(() => {
-            this.playRoundPart1();  // -> waitForCategory() -> playRoundPart2 -> end of 3-part loop
+            this.playRoundPart1();  // -> waitForCategory() -> playRoundPart2 -> playRoundPart3 -> run()
         }, 750);
     }
 
@@ -306,7 +306,7 @@ class Gameloop {
             this.roundCards.push(card);
 
             // Also let everybody see their top card:
-            this.comms.specific.sendCard(player, card);
+            this.comms.specific.sendRoundCard(player, card); //  (also sends a message)
         });
 
         // Somebody must now choose a category:
@@ -314,6 +314,10 @@ class Gameloop {
         this.waitForCategory();
     }
 
+    // There are 3 ways out of this function.
+    // 1. sendCategoryPrompt(this.lastWinner) -> playerSetCategory(cat) -> playRoundPart2()
+    // 2. no lastWinner -> randomiseCategory() & playRoundPart2()
+    // 3. timer expires -> randomiseCategory() & playRoundPart2()
     waitForCategory() {
         // Start a timer, we don't want to wait all day:
         this.waitInterval = setInterval(function() {
@@ -321,29 +325,40 @@ class Gameloop {
             this.playRoundPart2();
         }.bind(this), 4000);
 
-        // While we wait, ask for user input:
-        if (this.lastWinner && this.lastWinner.cards[0]) {
-            this.comms.specific.categoryPrompt(this.lastWinner.sockid, this.lastWinner.cards[0]);
+        // While we wait, ask for human input:
+        if (this.lastWinner && !this.lastWinner.isComputer) {
+            this.comms.specific.sendCategoryPrompt(this.lastWinner);
         }
         else {
-            // If no winner, Computer chooses immediately:
+            // If no human winner, Computer chooses immediately:
             clearInterval(this.waitInterval);
             this.randomiseCategory();
             this.playRoundPart2();
         }
     }
 
-    setCategory(cat) {
+    playerSetCategory(cat) {
         this.category = cat;
         this.comms.all.updateGameText(" <span class='category'>" + cat + "</span> chosen.");
+        // No need to keep on waiting:
+        clearInterval(this.waitInterval);
         this.playRoundPart2();
     }
 
     randomiseCategory() {
-        // TODO! randomisation
         if (!this.category) {
-            this.category = "population.number";
-            this.comms.all.updateGameText(" <span class='category'>" + this.category + "</span> chosen.");
+            var options = [
+                "population.number",
+                "area.total",
+                "elevation.highest",
+                "capital.lat",
+                "capital.long",
+                "borders.land",
+                "population.lifexp"
+            ];
+            // Select at random from above list:
+            this.category = options[Math.floor(options.length * Math.random())];
+            this.comms.all.updateGameText(" <span class='category'>" + this.category + "</span> randomly chosen.");
         }
     }
 

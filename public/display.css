@@ -49,21 +49,6 @@ section#card {
 }
 section#output {
     width: auto;
-    clear: both;
-}
-#output pre code {
-    display: block;
-    width: 100%;
-    height: 10rem;
-    padding: 4px;
-    overflow-y: scroll;
-    background: rgba(80,80,80,0.75);
-    color: white;
-    font-size: 0.9em;
-    box-shadow: inset 2px 4px 2px 0px #666;
-    border: 1px solid white;
-    border-top: black;
-    border-left: black;
 }
 #msg {
     width: 100%;
@@ -96,6 +81,21 @@ h4 {
 /*********
 /* OUTPUT
 /*********/
+#output pre code {
+    display: block;
+    width: 100%;
+    height: 13rem;
+    resize: vertical;
+    padding: 4px;
+    overflow-y: scroll;
+    background: rgba(80,80,80,0.75);
+    color: white;
+    font-size: 0.9em;
+    box-shadow: inset 2px 4px 2px 0px #666;
+    border: 1px solid white;
+    border-top: black;
+    border-left: black;
+}
 hr.dashed-line {
     height: 0;
     margin: 0;

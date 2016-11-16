@@ -96,24 +96,25 @@ var comms = {
 
     // To a specific user:
     specific: {
-        announceGameStart: function(socketid) {
+/*        announceGameStart: function(socketid) {
             io.to(socketid).emit('gameStart', "");
         },
-
-        namePrompt: function(socketid) {
-            // Send prompt to this user only:
+*/
+        sendNamePrompt: function(socketid) {
+            // Prompt new client for a name (Player not created yet):
             io.to(socketid).emit('namePrompt', "");
         },
 
-        categoryPrompt: function(socketid, card) {
-            // Send prompt to this user only:
-            io.to(socketid).emit('output', "You have <span class='country'>" + card.name + "</span>. Please choose your category...", false);
-            io.to(socketid).emit('categoryPrompt', "");
+        sendCategoryPrompt: function(player) {
+            // Prompt specific user to select the round category:
+            io.to(player.socketid).emit('output', "Please choose your category...", false);
+            io.to(player.socketid).emit('categoryPrompt', "");
         },
 
-        sendCard: function(player, card) {
+        sendRoundCard: function(player, card) {
             //  Let a player see his top card:
             io.to(player.sockid).emit('yourCard', JSON.stringify(card));
+            io.to(player.sockid).emit('output', "You have drawn <span class='country'>" + card.name + "</span>. ", false);
         }
     }
 };
@@ -134,7 +135,7 @@ io.on('connection', function(socket){
         }
     });
     // sessionId was unused, allow to join:
-    comms.specific.namePrompt(socket.id);
+    comms.specific.sendNamePrompt(socket.id);
 
     // Listen to clients:
     socket.on('myNameIs', function(inputName) {
@@ -166,7 +167,7 @@ io.on('connection', function(socket){
     // Player chose his category:
     socket.on('categoryPicked', function(cat) {
         console.log('category:', cat);
-        game.setCategory(cat);
+        game.loop.playerSetCategory(cat);
     });
 
     // Connection dropped:
