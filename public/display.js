@@ -168,6 +168,11 @@ var display = (function() {
         $(".card .flag").html('<img src="'+ imgSrc +'">');
     }
 
+    function flipCard() {
+        document.querySelector(".flip-container").classList.toggle("flipped");
+        console.log("flipped");
+    }
+
     // Expose publicly:
     return {
         modalNamePrompt: modalNamePrompt,
@@ -176,7 +181,8 @@ var display = (function() {
         renderPlayers: renderPlayers,
         beginYourTurn: beginYourTurn,
         endYourTurn: endYourTurn,
-        renderOutput: renderOutput
+        renderOutput: renderOutput,
+        flipCard: flipCard
     };
 }());
 
@@ -221,6 +227,12 @@ $(function() {
             console.info("Table generated:", window.codesTable);
         }
     });
+
+    // f flips card manually:
+    $('document').on('keyup', function(evt) {
+        if (evt.keyCode === 70) display.flipCard();
+    });
+
 });
 
 
@@ -257,6 +269,7 @@ socket.on('yourCard', function(data) {
     //console.log('yourCard', data);
     var country = JSON.parse(data);
     display.renderCountry(country);
+    display.flipCard();
 });
 
 socket.on('output', function(data) {

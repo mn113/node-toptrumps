@@ -110,31 +110,67 @@ hr.dashed-line {
 /*******
 /* CARD
 /*******/
-.card {
+.card-front {
     border: 1px solid #ccc;
     border-radius: 5px;
+}
+.card-front div {
+    padding: 0.5em 1em;
+    border-bottom: 1px solid #ccc;
+}
+.card-front div:last-child {
+    border: 0;
 }
 .flag {
     float: left;
     margin-right: 4px;
 }
-.card div {
-    padding: 0.5em 1em;
-    border-bottom: 1px solid #ccc;
-}
-.card div:last-child {
-    border: 0;
-}
-.card button {
+.card-front button {
     margin-bottom: 0.4em;
 }
-.card button:hover {
+.card-front button:hover {
     background: turquoise;
 }
-.footer {
+.card .footer {
     font-size: 0.7rem;
     text-align: center;
 }
+
+
+/***************
+/* FLIPPABILITY
+/***************/
+/* entire container, keeps perspective */
+.flip-container {
+	perspective: 1000px;
+}
+/* flip the pane when hovered */
+.flip-container.flipped .card {
+	transform: rotateY(180deg);
+    transform: translateX(5000px);
+}
+.flip-container, .card, .card-front, .card-back {
+	width: auto;
+	height: 750px;
+}
+/* flip speed goes here */
+.card {
+	transition: 0.5s;
+	transform-style: preserve-3d;
+	position: relative;
+}
+/* hide back of pane during swap */
+.card-front, .card-back {
+	backface-visibility: hidden;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+/* front pane, placed above back */
+.card-front { transform: rotateY(0deg); z-index: 2; }
+/* back, initially hidden pane */
+.card-back { transform: rotateY(180deg); background: turquoise; }
+
 
 /*******
 /* LIST

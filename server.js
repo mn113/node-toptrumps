@@ -88,7 +88,7 @@ var comms = {
             //  Announce round card stats:
             game.loop.roundCards.forEach(card => {
                 var name = "<span class='country'>" + card.name + "</span>";
-                var value = "<span class='data'>" + game.Utility.fetchFromObject(card, game.loop.category) + "</span>";
+                var value = "<span class='data'>" + card.getProperty(game.loop.category) + "</span>";
                 comms.all.updateGameText("&gt; " + name + ": " + value);
             });
         },

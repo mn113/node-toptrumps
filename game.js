@@ -87,8 +87,20 @@ class Card {
         // Register in Deck
     }
 
-    getProperty() {
+    getProperty(prop) {
+        // Can fetch a deeply-nested property e.g. fetchFromObject(country, "transport.roads.paved")
+        function fetchFromObject(obj, prop) {
+            if(typeof obj === 'undefined') {
+                return false;
+            }
+            var _index = prop.indexOf('.');
+            if(_index > -1) {
+                return fetchFromObject(obj[prop.substring(0, _index)], prop.substr(_index + 1));
+            }
+            return obj[prop];
+        }
 
+        return fetchFromObject(this, prop);
     }
 }
 
@@ -201,38 +213,26 @@ class Utility {
         }
     }
 
-    // Can fetch a deeply-nested property e.g. fetchFromObject(country, "transport.roads.paved")
-    static fetchFromObject(obj, prop) {
-        if(typeof obj === 'undefined') {
-            return false;
-        }
-        var _index = prop.indexOf('.');
-        if(_index > -1) {
-            return Utility.fetchFromObject(obj[prop.substring(0, _index)], prop.substr(_index + 1));
-        }
-        return obj[prop];
-    }
-
     // Compare an array of cards on a property and return winner:
     static compareCards(cards, prop) {
         cards.forEach(card => {
-            console.log(card.name, prop, Utility.fetchFromObject(card, prop));
+            console.log(card.code, card.name, prop, card.getProperty(prop));
         });
         // Pick winner:
         try {
             var highest = cards.reduce((a,b) => {
                 // Test for nulls:
-                if (Utility.fetchFromObject(a, prop) === null) {
+                if (a.getProperty(prop) === null) {
                     return b;
                 }
-                else if (Utility.fetchFromObject(b, prop) === null) {
+                else if (b.getProperty(prop) === null) {
                     return a;
                 }
                 // No nulls, compare values:
-                return (Utility.fetchFromObject(a, prop) > Utility.fetchFromObject(b, prop)) ? a : b;
+                return (a.getProperty(prop) > b.getProperty(prop)) ? a : b;
             });
 
-            console.log(highest.name, "wins with", Utility.fetchFromObject(highest, prop));
+            console.log(highest.name, "wins with", highest.getProperty(prop));
             return highest;
         }
         catch (e) {
