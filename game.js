@@ -23,9 +23,9 @@ class Card {
             try {
                 var lat = coords[0].trim().split(/\s/);  // length 3
                 var long = coords[1].trim().split(/\s/); // length 3    // null ERROR in 'od'
-                this.capital.lat = Math.abs(Utility.parseNumber(lat[0]) + Utility.parseNumber(lat[1])/60.0);
+                this.capital.lat = Math.abs(Utility.parseNumber(lat[0]) + Utility.parseNumber(lat[1])/60.0).toFixed(2);
                 this.capital.latsign = lat[2];
-                this.capital.long = Math.abs(Utility.parseNumber(long[0]) + Utility.parseNumber(long[1])/60.0);
+                this.capital.long = Math.abs(Utility.parseNumber(long[0]) + Utility.parseNumber(long[1])/60.0).toFixed(2);
                 this.capital.longsign = long[2];
                 //console.log(countryCode, this.capital.lat, this.capital.latsign);
             }
@@ -287,11 +287,12 @@ class Gameloop {
         // Play cards:
         setTimeout(() => {
             this.playRoundPart1();  // -> waitForCategory() -> playRoundPart2 -> playRoundPart3 -> run()
-        }, 750);
+        }, 1000);
     }
 
     addWaitingPlayers() {
         // Move all waiting players to active list:
+        console.log(this.waitList.length + " players to join.");
         while (this.waitList.length > 0) {
             var newPlayer = this.waitList.shift();
             this.playerList.push(newPlayer);
@@ -310,7 +311,9 @@ class Gameloop {
         });
 
         // Somebody must now choose a category:
-        this.comms.all.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> to choose category...", false);
+        if (this.lastWinner) {
+            this.comms.all.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> to choose category...", false);
+        }
         this.waitForCategory();
     }
 
@@ -320,10 +323,10 @@ class Gameloop {
     // 3. timer expires -> randomiseCategory() & playRoundPart2()
     waitForCategory() {
         // Start a timer, we don't want to wait all day:
-        this.waitInterval = setInterval(function() {
+        this.waitInterval = setTimeout(function() {
             this.randomiseCategory();
             this.playRoundPart2();
-        }.bind(this), 4000);
+        }.bind(this), 5000);
 
         // While we wait, ask for human input:
         if (this.lastWinner && !this.lastWinner.isComputer) {
@@ -331,7 +334,7 @@ class Gameloop {
         }
         else {
             // If no human winner, Computer chooses immediately:
-            clearInterval(this.waitInterval);
+            clearTimeout(this.waitInterval);
             this.randomiseCategory();
             this.playRoundPart2();
         }
@@ -341,7 +344,7 @@ class Gameloop {
         this.category = cat;
         this.comms.all.updateGameText(" <span class='category'>" + cat + "</span> chosen.");
         // No need to keep on waiting:
-        clearInterval(this.waitInterval);
+        clearTimeout(this.waitInterval);
         this.playRoundPart2();
     }
 
@@ -382,7 +385,8 @@ class Gameloop {
             this.lastWinner.receiveCard(card);
         });
         this.lastWinner.wins++;
-        this.comms.all.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> won with <span class='country'>" + winningCard.name + "</span> and gained " + (this.roundCards.length - 1) + " card(s).");
+        this.comms.all.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> won with <span class='country'>" + winningCard.name + "</span>", false);
+        this.comms.all.updateGameText(" and gained " + (this.roundCards.length - 1) + " card(s).");
         this.comms.all.updatePlayerList();
 
         // Round over!

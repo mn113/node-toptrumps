@@ -192,7 +192,7 @@ $(function() {
     // Event listeners:
     $('.card button').on('click', function(evt) {
         evt.preventDefault();
-        var category = evt.currentTarget;
+        var category = evt.currentTarget.name;
 
         // Find the button itself (not the span):
 /*        if (evt.target === 'span') {
