@@ -389,6 +389,11 @@ class Gameloop {
         this.comms.all.updateGameText(" and gained " + (this.roundCards.length - 1) + " card(s).");
         this.comms.all.updatePlayerList();
 
+        // Send win/loss Boolean to each player:
+        this.playerList.forEach(player => {
+            this.comms.specific.sendWinLoss(player, player === this.lastWinner);
+        });
+
         // Round over!
         this.roundCards = [];
         this.category = null;

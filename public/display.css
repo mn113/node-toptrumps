@@ -49,6 +49,7 @@ section#card {
 }
 section#output {
     width: auto;
+    position: relative;
 }
 #msg {
     width: 100%;
@@ -105,6 +106,24 @@ hr.dashed-line {
 .category,
 .data { color: turquoise; }
 .country {color: salmon; }
+
+#face {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    width: 100px;
+    opacity: 1;
+    transform-origin: center center;
+
+    animation: expand 1s linear both;
+    animation-play-state: paused;
+}
+@keyframes expand {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
 
 
 /*******

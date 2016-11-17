@@ -115,6 +115,10 @@ var comms = {
             //  Let a player see his top card:
             io.to(player.sockid).emit('yourCard', JSON.stringify(card));
             io.to(player.sockid).emit('output', "You have drawn <span class='country'>" + card.name + "</span>. ", false);
+        },
+
+        sendWinLoss: function(player, didWin) {
+            io.to(player.sockid).emit('winLoss', didWin);            
         }
     }
 };

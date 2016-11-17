@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="68.6px" height="51.4px" viewBox="0 0 68.6 51.4" enable-background="new 0 0 68.6 51.4" xml:space="preserve">
+
+	 <g id="win">
+		 <path name="smile" fill="#FFFFFF" d="M1.9,33.1c7.9,5.6,18.2,10,32.6,10c14.4,0,24.6-4.3,32.6-10v5.4c-6.6,5-16.9,10.5-32.6,10.5
+			 C18.9,49,8.7,43.6,1.9,38.6V33.1z"/>
+		 <g name="eyes">
+			 <circle fill="#FFFFFF" cx="20" cy="7" r="5"/>
+			 <circle fill="#FFFFFF" cx="48" cy="7" r="5"/>
+		 </g>
+	 </g>
+	 <g id="loss">
+		 <path name="frown" fill="#FFFFFF" d="M1.9,43.6c6.8-5,17-10.4,32.6-10.5c15.7,0,26,5.4,32.6,10.5v5.4c-8-5.7-18.2-10-32.6-10
+			 c-14.4,0-24.7,4.4-32.6,10V43.6z"/>
+		 <g name="eyes">
+			 <circle fill="#FFFFFF" cx="20" cy="7" r="5"/>
+			 <circle fill="#FFFFFF" cx="48" cy="7" r="5"/>
+		 </g>
+	 </g>
+</svg>

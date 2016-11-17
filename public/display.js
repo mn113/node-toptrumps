@@ -117,7 +117,7 @@ var display = (function() {
 
     function beginYourTurn() {
         // Enable buttons
-        $(".card button").prop( "disabled", false );
+        $(".card button").prop("disabled", false);
         // Message and timer:
         $("#msg").show();
         var seconds = 5;
@@ -136,6 +136,19 @@ var display = (function() {
         // Hide message & disable buttons:
         $("#msg").hide();
         $(".card button").prop( "disabled", true );
+    }
+
+    function smile(didWin) {
+        var status = didWin ? 'win' : 'loss';
+        // Insert a smiley face:
+        var $face = $('<svg id="face"><use xlink:href="face.svg#'+ status +'"></use></svg>');
+        $face.appendTo("#output");
+        // Start CSS animation:
+        $face.css("animation-play-state", "running");
+        // Remove element when done:
+        setTimeout(function() {
+            $face.remove();
+        }, 1000);
     }
 
     function renderOutput(data) {
@@ -181,6 +194,7 @@ var display = (function() {
         renderPlayers: renderPlayers,
         beginYourTurn: beginYourTurn,
         endYourTurn: endYourTurn,
+        smile: smile,
         renderOutput: renderOutput,
         flipCard: flipCard
     };
@@ -270,6 +284,10 @@ socket.on('yourCard', function(data) {
     var country = JSON.parse(data);
     display.renderCountry(country);
     display.flipCard();
+});
+
+socket.on('winLoss', function(didWin) {
+    display.smile(didWin);
 });
 
 socket.on('output', function(data) {
