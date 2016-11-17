@@ -326,7 +326,7 @@ class Gameloop {
         this.waitInterval = setTimeout(function() {
             this.randomiseCategory();
             this.playRoundPart2();
-        }.bind(this), 5000);
+        }.bind(this), 7000);
 
         console.info('LW', this.lastWinner.name, this.lastWinner.isComputer, this.lastWinner.sockid);
         // While we wait, ask for human input:
@@ -334,7 +334,9 @@ class Gameloop {
             // If no human winner, Computer chooses immediately:
             clearTimeout(this.waitInterval);
             this.randomiseCategory();
-            this.playRoundPart2();
+            setTimeout(function() {
+                this.playRoundPart2();
+            }.bind(this), 1500);
         }
         else {
             // Human must choose:
@@ -378,7 +380,7 @@ class Gameloop {
         // Add delay:
         setTimeout(() => {
             this.playRoundPart3(winningCard);
-        }, 1000);
+        }, 1500);
     }
 
     playRoundPart3(winningCard) {
@@ -390,7 +392,7 @@ class Gameloop {
         this.comms.all.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> won with <span class='country'>" + winningCard.name + "</span>", false);
         this.comms.all.updateGameText(" and gained " + (this.roundCards.length - 1) + " card(s).");
         this.comms.all.updateGameText("<hr>", false);   // prevent newline gap
-        this.comms.all.updatePlayerList();
+        this.comms.all.updatePlayerList(this.lastWinner);
 
         // Send win/loss Boolean to each player:
         this.playerList.forEach(player => {

@@ -20,7 +20,7 @@ body {
 }
 header {
     width: 100%;
-    background: rgba(80,130,255,0.8) url(header_icons_shadowed.png) 5px 3px no-repeat;
+    background: rgba(80,128,255,.8) url(header_icons_shadowed.png) 5px 3px no-repeat;
     margin-bottom: 1em;
     padding: 0.5em;
     box-shadow: 0 0 6px rgba(0,0,0,0.4);
@@ -137,11 +137,16 @@ hr.dashed-line {
     float: left;
     margin-right: 4px;
 }
-.card-front button {
+.card-front button,
+.card-front a {
     margin-bottom: 0.4em;
+    font-size: 0.9em;
+    color: #5080ff;
 }
-.card-front button:hover {
-    background: turquoise;
+.card-front button:hover,
+.card-front a:hover {
+    background: #5080ff;
+    color: white;
 }
 .card .footer {
     font-size: 0.7rem;
@@ -154,7 +159,8 @@ hr.dashed-line {
     position: absolute;
     right: 15px;
     top: 5px;
-    display: none; 
+    color: #5080ff;
+    display: none;
 }
 #timer {
     position: absolute;
@@ -162,10 +168,10 @@ hr.dashed-line {
     left: 0;
     width: 100%;
     height: 5px;
-    background: blue;
+    background: #5080ff;
     display: none;
 
-    animation: shrinking 5s linear both;
+    animation: shrinking 7s linear both;
     animation-play-state: running;
 }
 @keyframes shrinking {
@@ -187,13 +193,19 @@ hr.dashed-line {
 /* entire container, keeps perspective */
 .flip-container {
 	perspective: 1000px;
+    overflow: hidden;    /* allows card to go offscreen without scrollbars */
 }
-/* flip the pane when hovered */
-.flip-container.flipped .card {
-	transform: translateX(500px) rotateY(180deg);
+/* offscreen card position for before viewing */
+.flip-container.pre-flip .card {
+	transform: translateX(600px) rotateY(180deg);
 }
+/* offscreen card position for after viewing */
+.flip-container.post-flip .card {
+	transform: translateY(1000px);
+}
+/* all necessary? */
 .flip-container, .card, .card-front, .card-back {
-	width: auto;
+	width: 500px;
 	height: 750px;
 }
 /* flip speed goes here */
@@ -218,34 +230,33 @@ hr.dashed-line {
 /*******
 /* LIST
 /*******/
-#player-list ul {
-    list-style: none;
-    list-style-position: inside;
+#player-list table {
     width: 100%;
     padding: 0.5em;
     background: rgba(200,200,200,0.8);
     border: 1px solid #999;
     min-height: 75px;
+    margin-bottom: 1em;
+    border-collapse: separate;
 }
-#player-list li {
+#player-list tr {
     width: 100%;
     padding-left: 0;
 }
-#player-list li.active {
-    background: #7dd3e6;
-}
-#player-list li strong {
+#player-list td:first-child {
+    font-weight: bold;
     width: 50%;
 }
-span.card-tot,
-span.win-tot{
+td.card-tot,
+td.win-tot {
     width: 25%;
-    float: right;
     font-size: 0.8em;
     line-height: 1.25em;
     color: #666;
-    margin-left: 0.5em;
     padding-top: 5px;
+}
+.leader td:first-child {
+    color: #5080ff;
 }
 
 

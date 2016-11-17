@@ -8,14 +8,20 @@ var display = (function() {
             $('#namePrompt').modal('show');
 
             // Q&D field validation:
-            $("#modal").on('keyup', '.modal-body input', function() {
+            $("#modal").on('keyup', '.modal-body input', function(evt) {
                 //console.log(this.value);
+                // Name must have length:
                 if (this.value.length > 0) {
                     $("#namePrompt .modal-footer button").prop("disabled", false);
+                    // Enter submits if valid:
+                    if (evt.which === 13) {
+                        $("#namePrompt .modal-footer button").submit();
+                    }
                 }
                 else {
                     $("#namePrompt .modal-footer button").prop("disabled", true);
                 }
+
             });
 
             // Submit button:
@@ -35,29 +41,29 @@ var display = (function() {
         var $card = $(".card");
         $card.find('h3').html(cdata.name);
         $card.find('h4:first-of-type span').html(cdata.capital.name);
-        $card.find('button[name="capital.lat"] span').html(formatNumber(cdata.capital.lat, 'degrees') + cdata.capital.latsign);
-        $card.find('button[name="capital.long"] span').html(formatNumber(cdata.capital.long, 'degrees') + cdata.capital.longsign);
-        $card.find('button[name="area.total"] span').html(formatNumber(cdata.area.total, 'area'));
-        $card.find('button[name="area.land"] span').html(formatNumber(cdata.area.land, 'area'));
-        $card.find('button[name="area.water"] span').html(formatNumber(cdata.area.water, 'area'));
-        $card.find('button[name="elevation.highest"] span').html(formatNumber(cdata.elevation.highest, 'height'));
-        $card.find('button[name="elevation.lowest"] span').html(formatNumber(cdata.elevation.lowest, 'height'));
-        $card.find('button[name="elevation.mean"] span').html(formatNumber(cdata.elevation.mean, 'height'));
-        $card.find('button[name="borders.land"] span').html(formatNumber(cdata.borders.land, 'distance'));
-        $card.find('button[name="borders.coast"] span').html(formatNumber(cdata.borders.coast, 'distance'));
-        $card.find('button[name="borders.number"] span').html(cdata.borders.number);
-        $card.find('button[name="transport.road"] span').html(formatNumber(cdata.transport.road, 'distance'));
-        $card.find('button[name="transport.rail"] span').html(formatNumber(cdata.transport.rail, 'distance'));
-        $card.find('button[name="transport.water"] span').html(formatNumber(cdata.transport.water, 'distance'));
-        $card.find('button[name="gdp.net"] span').html(formatNumber(cdata.gdp.net, 'money'));
-        $card.find('button[name="gdp.percapita"] span').html(formatNumber(cdata.gdp.percapita, 'money'));
-        $card.find('button[name="population.number"] span').html(formatNumber(cdata.population.number));
-        $card.find('button[name="population.density"] span').html(formatNumber(cdata.population.density, 'density'));
-        $card.find('button[name="population.lgurban"] span').html(formatNumber(cdata.population.lgurban));
-        $card.find('button[name="population.lifexp"] span').html(formatNumber(cdata.population.lifexp, 'age'));
-        $card.find('button[name="population.medage"] span').html(formatNumber(cdata.population.medage, 'age'));
-        $card.find('button[name="population.youngest"] span').html(formatNumber(cdata.population.youngest, 'percent'));
-        $card.find('button[name="population.oldest"] span').html(formatNumber(cdata.population.oldest, 'percent'));
+        $card.find('a[name="capital.lat"] span').html(formatNumber(cdata.capital.lat, 'degrees') + cdata.capital.latsign);
+        $card.find('a[name="capital.long"] span').html(formatNumber(cdata.capital.long, 'degrees') + cdata.capital.longsign);
+        $card.find('a[name="area.total"] span').html(formatNumber(cdata.area.total, 'area'));
+        $card.find('a[name="area.land"] span').html(formatNumber(cdata.area.land, 'area'));
+        $card.find('a[name="area.water"] span').html(formatNumber(cdata.area.water, 'area'));
+        $card.find('a[name="elevation.highest"] span').html(formatNumber(cdata.elevation.highest, 'height'));
+        $card.find('a[name="elevation.lowest"] span').html(formatNumber(cdata.elevation.lowest, 'height'));
+        $card.find('a[name="elevation.mean"] span').html(formatNumber(cdata.elevation.mean, 'height'));
+        $card.find('a[name="borders.land"] span').html(formatNumber(cdata.borders.land, 'distance'));
+        $card.find('a[name="borders.coast"] span').html(formatNumber(cdata.borders.coast, 'distance'));
+        $card.find('a[name="borders.number"] span').html(cdata.borders.number);
+        $card.find('a[name="transport.road"] span').html(formatNumber(cdata.transport.road, 'distance'));
+        $card.find('a[name="transport.rail"] span').html(formatNumber(cdata.transport.rail, 'distance'));
+        $card.find('a[name="transport.water"] span').html(formatNumber(cdata.transport.water, 'distance'));
+        $card.find('a[name="gdp.net"] span').html(formatNumber(cdata.gdp.net, 'money'));
+        $card.find('a[name="gdp.percapita"] span').html(formatNumber(cdata.gdp.percapita, 'money'));
+        $card.find('a[name="population.number"] span').html(formatNumber(cdata.population.number));
+        $card.find('a[name="population.density"] span').html(formatNumber(cdata.population.density, 'density'));
+        $card.find('a[name="population.lgurban"] span').html(formatNumber(cdata.population.lgurban));
+        $card.find('a[name="population.lifexp"] span').html(formatNumber(cdata.population.lifexp, 'age'));
+        $card.find('a[name="population.medage"] span').html(formatNumber(cdata.population.medage, 'age'));
+        $card.find('a[name="population.youngest"] span').html(formatNumber(cdata.population.youngest, 'percent'));
+        $card.find('a[name="population.oldest"] span').html(formatNumber(cdata.population.oldest, 'percent'));
     }
 
     function formatNumber(number, type) {
@@ -92,26 +98,27 @@ var display = (function() {
         }
     }
 
-    function renderPlayers(playerList) {
-        //console.log("Re-rendering playerList");
-        var $list1 = $("#player-list .playing"),
-            $list2 = $("#player-list .waiting");
+    function renderPlayers(playerList, lastWinner) {
+        var $table1 = $("#player-list .playing"),
+            $table2 = $("#player-list .waiting");
         // Clear out:
-        $list1.html("");
-        $list2.html("");
+        $table1.html("");
+        $table2.html("");
         playerList.active.forEach(player => {
-            // Build new <li>:
-            var li = $("<li>").attr("id", player.id);
-            $("<strong>").html(player.name).appendTo(li);
-            $("<span>").addClass("win-tot").html(player.wins + '&nbsp;wins').appendTo(li);
-            $("<span>").addClass("card-tot").html(player.cards.length + '&nbsp;cards').appendTo(li);
-            li.appendTo($list1);
+            // Build new <tr>:
+            var tr = $("<tr>").attr("id", player.id);
+            $("<td>").html(player.name).appendTo(tr);
+            $("<td>").addClass("win-tot").html(player.wins + '&nbsp;wins').appendTo(tr);
+            $("<td>").addClass("card-tot").html(player.cards.length + '&nbsp;cards').appendTo(tr);
+            tr.appendTo($table1);
+            // Prefix the lastWinner's name:
+            if (player.name === lastWinner.name) { tr.addClass("leader"); }
         });
         playerList.waiting.forEach(player => {
             // Build new <li>:
-            var li = $("<li>").attr("id", player.id);
-            $("<strong>").html(player.name).appendTo(li);
-            li.appendTo($list2);
+            var tr = $("<tr>").attr("id", player.id);
+            $("<td>").html(player.name).appendTo(tr);
+            tr.appendTo($table2);
         });
     }
 
@@ -121,7 +128,7 @@ var display = (function() {
         // Message and timer:
         $("#msg").show();
         $("#timer").show().removeClass("paused");
-        var seconds = 5;
+        var seconds = 8;
         var countdown = setInterval(function() {
             seconds--;
             $("#countdown").html(seconds);
@@ -183,11 +190,18 @@ var display = (function() {
     }
 
     function flipCard(inOut) {
+        var $cont = $(".flip-container");
         if (inOut === 'in') {
-            document.querySelector(".flip-container").classList.toggle("flipped");
+            // Flip it in:
+            $cont.removeClass("pre-flip");
         }
         else if (inOut === 'out') {
-            document.querySelector(".flip-container").classList.toggle("flipped");
+            // Slide it out:
+            $cont.addClass("post-flip");
+            // Reset position offscreen:
+            setTimeout(function() {
+                $cont.addClass("pre-flip").removeClass("post-flip");
+            }, 1000);
         }
         console.log("flipped", inOut);
     }
@@ -210,7 +224,7 @@ var display = (function() {
 // jQuery ready:
 $(function() {
     // Event listeners:
-    $('.card button').on('click', function(evt) {
+    $('.card-front a').on('click', function(evt) {
         evt.preventDefault();
         var category = evt.currentTarget.name;
         console.log(category);   // ok
@@ -275,10 +289,11 @@ socket.on('categoryPrompt', function() {
     display.beginYourTurn();
 });
 
-socket.on('playerList', function(data) {
+socket.on('playerList', function(data, lastWinner) {
     //console.log('playerList', data);
     var playerList = JSON.parse(data);
-    display.renderPlayers(playerList);
+    lastWinner = JSON.parse(lastWinner);
+    display.renderPlayers(playerList, lastWinner);
 });
 
 socket.on('yourCard', function(data) {

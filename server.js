@@ -74,9 +74,9 @@ var comms = {
             }
         },
 
-        updatePlayerList: function() {
+        updatePlayerList: function(lastWinner = null) {
             //  Update player list
-            io.emit('playerList', JSON.stringify(game.players));
+            io.emit('playerList', JSON.stringify(game.players), JSON.stringify(lastWinner));
         },
 
         updateGameText: function(clientText, newLine = true) {
