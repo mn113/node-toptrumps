@@ -165,8 +165,7 @@ hr.dashed-line {
 }
 /* flip the pane when hovered */
 .flip-container.flipped .card {
-	transform: rotateY(180deg);
-    transform: translateX(5000px);
+	transform: translateX(500px) rotateY(180deg);
 }
 .flip-container, .card, .card-front, .card-back {
 	width: auto;
@@ -188,7 +187,7 @@ hr.dashed-line {
 /* front pane, placed above back */
 .card-front { transform: rotateY(0deg); z-index: 2; }
 /* back, initially hidden pane */
-.card-back { transform: rotateY(180deg); background: turquoise; }
+.card-back { transform: rotateY(180deg); background: url(cardback.png) repeat; }
 
 
 /*******

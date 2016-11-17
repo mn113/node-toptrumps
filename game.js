@@ -314,6 +314,7 @@ class Gameloop {
         if (this.lastWinner) {
             this.comms.all.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> to choose category...", false);
         }
+        this.comms.all.roundStart();
         this.waitForCategory();
     }
 
@@ -398,6 +399,7 @@ class Gameloop {
         this.roundCards = [];
         this.category = null;
         this.round++;
+        this.comms.all.roundEnd();
 
         // Delay, then back to the beginning of the Gameloop!
         setTimeout(() => {

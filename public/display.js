@@ -181,9 +181,14 @@ var display = (function() {
         $(".card .flag").html('<img src="'+ imgSrc +'">');
     }
 
-    function flipCard() {
-        document.querySelector(".flip-container").classList.toggle("flipped");
-        console.log("flipped");
+    function flipCard(inOut) {
+        if (inOut === 'in') {
+            document.querySelector(".flip-container").classList.toggle("flipped");
+        }
+        else if (inOut === 'out') {
+            document.querySelector(".flip-container").classList.toggle("flipped");
+        }
+        console.log("flipped", inOut);
     }
 
     // Expose publicly:
@@ -207,14 +212,6 @@ $(function() {
     $('.card button').on('click', function(evt) {
         evt.preventDefault();
         var category = evt.currentTarget.name;
-
-        // Find the button itself (not the span):
-/*        if (evt.target === 'span') {
-            category = evt.target.parent.name;
-        }
-        else {
-            category = evt.target.name;
-        }*/
         console.log(category);   // ok
 
         // Send decision to socket.io server:
@@ -242,9 +239,10 @@ $(function() {
         }
     });
 
-    // f flips card manually:
-    $('document').on('keyup', function(evt) {
-        if (evt.keyCode === 70) display.flipCard();
+    // Flips card manually:
+    $(document).keydown(function(evt) {
+        if (evt.keyCode === 70) display.flipCard('in');     // f
+        if (evt.keyCode === 71) display.flipCard('out');    // g
     });
 
 });
@@ -262,11 +260,13 @@ socket.on('namePrompt', function() {
     display.modalNamePrompt();
 });
 
-/*socket.on('gameStart', function() {
-    console.log("received gameStart");
-    // Clear previous games:
-    $("#output-box").html("");
-});*/
+socket.on('roundStart', function() {
+    display.flipCard('in');
+});
+
+socket.on('roundEnd', function() {
+    display.flipCard('out');
+});
 
 socket.on('categoryPrompt', function() {
     console.log("received categoryPrompt");
@@ -283,7 +283,6 @@ socket.on('yourCard', function(data) {
     //console.log('yourCard', data);
     var country = JSON.parse(data);
     display.renderCountry(country);
-    display.flipCard();
 });
 
 socket.on('winLoss', function(didWin) {

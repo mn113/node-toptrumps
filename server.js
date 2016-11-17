@@ -92,6 +92,14 @@ var comms = {
                 comms.all.updateGameText("&gt; " + name + ": " + value);
             });
         },
+
+        roundStart: function() {
+            io.emit('roundStart', "");
+        },
+
+        roundEnd: function() {
+            io.emit('roundEnd', "");
+        }
     },
 
     // To a specific user:
@@ -118,7 +126,7 @@ var comms = {
         },
 
         sendWinLoss: function(player, didWin) {
-            io.to(player.sockid).emit('winLoss', didWin);            
+            io.to(player.sockid).emit('winLoss', didWin);
         }
     }
 };
