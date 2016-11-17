@@ -51,12 +51,6 @@ section#output {
     width: auto;
     position: relative;
 }
-#msg {
-    width: 100%;
-    text-align: center;
-    border-bottom: 1px solid #666;
-    display: none;
-}
 
 
 /*******
@@ -115,10 +109,9 @@ hr.dashed-line {
     opacity: 1;
     transform-origin: center center;
 
-    animation: expand 1s linear both;
-    animation-play-state: paused;
+    animation: expanding 1s linear both;
 }
-@keyframes expand {
+@keyframes expanding {
     to {
         transform: scale(4);
         opacity: 0;
@@ -153,6 +146,38 @@ hr.dashed-line {
 .card .footer {
     font-size: 0.7rem;
     text-align: center;
+}
+#card {
+    position: relative;
+}
+#msg {
+    position: absolute;
+    right: 15px;
+    top: 5px;
+    display: none; 
+}
+#timer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: blue;
+    display: none;
+
+    animation: shrinking 5s linear both;
+    animation-play-state: running;
+}
+@keyframes shrinking {
+    to {
+        width: 0;
+    }
+}
+.paused {
+    -webkit-animation-play-state:paused;
+    -moz-animation-play-state:paused;
+    -o-animation-play-state:paused;
+    animation-play-state:paused;
 }
 
 

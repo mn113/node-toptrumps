@@ -12,7 +12,6 @@
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <div id="msg" class="alert alert-info" role="alert">Your turn! Choose a category...<span id="countdown"></span></div>
     <header>
         <h1>Top Trumps - World Factbook Edition</h1>
     </header>
@@ -34,6 +33,8 @@
         </section>
 
         <section id="card" class="flip-container">
+            <div id="timer" class="paused"></div>
+            <div id="msg">You to choose! <span id="countdown"></span></div>
             <h2>Your next card</h2>
             <div class="card" data-is-your-turn="false">
                 <div class="card-front">

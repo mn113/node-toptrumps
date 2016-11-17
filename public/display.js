@@ -120,6 +120,7 @@ var display = (function() {
         $(".card button").prop("disabled", false);
         // Message and timer:
         $("#msg").show();
+        $("#timer").show().removeClass("paused");
         var seconds = 5;
         var countdown = setInterval(function() {
             seconds--;
@@ -135,6 +136,7 @@ var display = (function() {
     function endYourTurn() {
         // Hide message & disable buttons:
         $("#msg").hide();
+        $("#timer").hide().addClass("paused");
         $(".card button").prop( "disabled", true );
     }
 
@@ -143,8 +145,7 @@ var display = (function() {
         // Insert a smiley face:
         var $face = $('<svg id="face"><use xlink:href="face.svg#'+ status +'"></use></svg>');
         $face.appendTo("#output");
-        // Start CSS animation:
-        $face.css("animation-play-state", "running");
+        // CSS animation runs automatically
         // Remove element when done:
         setTimeout(function() {
             $face.remove();
@@ -216,6 +217,7 @@ $(function() {
 
         // Send decision to socket.io server:
         socket.emit('categoryPicked', category);
+        display.endYourTurn();
     });
 
     // Load country codes lookup table from CSV file:

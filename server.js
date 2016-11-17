@@ -115,8 +115,8 @@ var comms = {
 
         sendCategoryPrompt: function(player) {
             // Prompt specific user to select the round category:
-            io.to(player.socketid).emit('output', "Please choose your category...", false);
-            io.to(player.socketid).emit('categoryPrompt', "");
+            io.to(player.sockid).emit('output', "Please choose your category...", false);
+            io.to(player.sockid).emit('categoryPrompt', "");
         },
 
         sendRoundCard: function(player, card) {
