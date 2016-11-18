@@ -123,8 +123,8 @@ var display = (function() {
     }
 
     function beginYourTurn() {
-        // Enable buttons
-        $(".card button").prop("disabled", false);
+        // Enable links:
+        $(".card").addClass("your-turn");
         // Message and timer:
         $("#msg").show();
         $("#timer").show().removeClass("paused");
@@ -141,10 +141,10 @@ var display = (function() {
     }
 
     function endYourTurn() {
-        // Hide message & disable buttons:
+        // Hide message & disable links:
         $("#msg").hide();
         $("#timer").hide().addClass("paused");
-        $(".card button").prop( "disabled", true );
+        $(".card").removeClass("your-turn");
     }
 
     function smile(didWin) {
@@ -177,12 +177,13 @@ var display = (function() {
 
     function setFlag(code) {
         // Convert NA code to ISO code:
-        var imgSrc;
+        var imgDir = "/flags_iso_64px/",
+            imgSrc;
         try {
-            imgSrc = "/flag_icons/gif/" + window.codesTable[code] + ".gif";
+            imgSrc = imgDir + window.codesTable[code].toUpperCase() + ".png";
         }
         catch (e) {
-            imgSrc = "/flag_icons/noflag.gif";
+            imgSrc = imgDir + "_unknown.png";
         }
 
         // Insert into flag holder element:
@@ -223,15 +224,16 @@ var display = (function() {
 
 // jQuery ready:
 $(function() {
-    // Event listeners:
+    // Card click event listener:
     $('.card-front a').on('click', function(evt) {
         evt.preventDefault();
-        var category = evt.currentTarget.name;
-        console.log(category);   // ok
 
-        // Send decision to socket.io server:
-        socket.emit('categoryPicked', category);
-        display.endYourTurn();
+        // Only act if currently in turn:
+        if ($('.card').hasClass("your-turn")) {
+            // Send decision to socket.io server:
+            socket.emit('categoryPicked', evt.currentTarget.name);
+            display.endYourTurn();
+        }
     });
 
     // Load country codes lookup table from CSV file:

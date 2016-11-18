@@ -67,6 +67,7 @@ h2 {
 }
 h3 {
     font-size: 1.8rem;
+    line-height: 64px;    /* because of 64px tall flag */
 }
 h4 {
     font-size: 1.1rem;
@@ -122,29 +123,45 @@ hr.dashed-line {
 /*******
 /* CARD
 /*******/
-.card-front {
+.card-front,
+.card-back {
     border: 1px solid #ccc;
     border-radius: 5px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
 }
 .card-front div {
     padding: 0.5em 1em;
     border-bottom: 1px solid #ccc;
+    width: 50%;
+}
+.card-front div:first-child,
+.card-front div:nth-child(2) {
+    width: 100%;
 }
 .card-front div:last-child {
     border: 0;
 }
 .flag {
     float: left;
-    margin-right: 4px;
+    margin-right: 6px;
 }
-.card-front button,
-.card-front a {
+.card:not(.your-turn) {
+    cursor: not-allowed;
+}
+.card a,
+.card a:hover {
     margin-bottom: 0.4em;
     font-size: 0.9em;
-    color: #5080ff;
+    color: #999;
+    cursor: not-allowed;
 }
-.card-front button:hover,
-.card-front a:hover {
+.card.your-turn a {
+    color: #5080ff;
+    cursor: pointer;
+}
+.card.your-turn a:hover {
     background: #5080ff;
     color: white;
 }

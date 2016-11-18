@@ -34,10 +34,10 @@ class Card {
             }
         }
         else {
-            this.capital.lat = null;
-            this.capital.latsign = null;
-            this.capital.long = null;
-            this.capital.longsign = null;
+            this.capital.lat = 0;
+            this.capital.latsign = 'N';
+            this.capital.long = 0;
+            this.capital.longsign = 'W';
         }
         this.area = {};
         this.area.total = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Geography", "Area", "total"), "", "sq km");
@@ -65,7 +65,7 @@ class Card {
         this.borders.coast =  Utility.parseNumber(Utility.assignOrNull(countryJSON, "Geography", "Coastline"), "", "km");
         this.borders.list = Utility.assignOrNull(countryJSON, "Geography", "Land boundaries", "border countries");
         // Split and count the comma-separated list of neighbours, or use zero:
-        this.borders.number = this.borders.list ? this.borders.list.split(',').length : 0;
+        this.borders.number = this.borders.list ? this.borders.list.split(', ').length : 0;
         this.transport = {};
         this.transport.road = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Transportation", "Roadways", "total"), "", "km");
         this.transport.rail = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Transportation", "Railways", "total"), "", "km");
@@ -251,24 +251,22 @@ var computer = computer || new Player("Computer", true); // Singleton
 class Gameloop {
     constructor (players, comms) {
         this.running = false;
-        this.waitInterval = null;    // setInterval placeholder
+        this.waitTimeout = null;    // setTimeout placeholder
         this.playerList = players.active;
         this.waitList = players.waiting;
         this.round = 1;
-        this.category = null;   // changes each round
-        this.roundCards = [];
+        this.category = null;   // resets every round
+        this.roundCards = [];   // resets every round
         this.lastWinner = computer;
         this.comms = comms;     // injected dependency
 
         console.log("Gameloop initialised.");
-        //console.log(this.playerList);
-        //console.log(this.waitList);
     }
 
     run() {
         this.running = true;
         // End condition:
-        if (this.round === 20) {
+        if (this.round === 30) {
             this.running = false;
             return;
         }
@@ -323,7 +321,7 @@ class Gameloop {
     // 3. timer expires -> randomiseCategory() & playRoundPart2()
     waitForCategory() {
         // Start a timer, we don't want to wait all day:
-        this.waitInterval = setTimeout(function() {
+        this.waitTimeout = setTimeout(function() {
             this.randomiseCategory();
             this.playRoundPart2();
         }.bind(this), 7000);
@@ -332,7 +330,7 @@ class Gameloop {
         // While we wait, ask for human input:
         if (this.lastWinner.isComputer) {
             // If no human winner, Computer chooses immediately:
-            clearTimeout(this.waitInterval);
+            clearTimeout(this.waitTimeout);
             this.randomiseCategory();
             setTimeout(function() {
                 this.playRoundPart2();
@@ -348,7 +346,7 @@ class Gameloop {
         this.category = cat;
         this.comms.all.updateGameText(" <span class='category'>" + cat + "</span> chosen.");
         // No need to keep on waiting:
-        clearTimeout(this.waitInterval);
+        clearTimeout(this.waitTimeout);
         this.playRoundPart2();
     }
 

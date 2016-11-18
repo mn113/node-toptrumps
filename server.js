@@ -173,6 +173,14 @@ io.on('connection', function(socket){
             game.loop = new game.Gameloop(game.players, comms);
             game.loop.run();
         }
+        else if (game.loop && game.loop.running) {
+            // Let player join existing, running game loop:
+
+        }
+        else {
+            // Game loop exists but needs restarting:
+            game.loop.run();
+        }
         console.log(game.players);
     });
 
