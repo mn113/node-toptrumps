@@ -130,6 +130,7 @@ hr.dashed-line {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    align-content: flex-start;
 }
 .card-front div {
     padding: 0.5em 1em;
@@ -214,7 +215,7 @@ hr.dashed-line {
 }
 /* offscreen card position for before viewing */
 .flip-container.pre-flip .card {
-	transform: translateX(600px) rotateY(180deg);
+	transform: rotateY(180deg) translateX(600px);
 }
 /* offscreen card position for after viewing */
 .flip-container.post-flip .card {
@@ -223,11 +224,11 @@ hr.dashed-line {
 /* all necessary? */
 .flip-container, .card, .card-front, .card-back {
 	width: 500px;
-	height: 750px;
+	height: 600px;
 }
 /* flip speed goes here */
 .card {
-	transition: 0.5s;
+	transition: 0.8s;
 	transform-style: preserve-3d;
 	position: relative;
 }
