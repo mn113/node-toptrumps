@@ -252,29 +252,31 @@ class Gameloop {
     constructor (players, comms) {
         this.running = false;
         this.waitTimeout = null;    // setTimeout placeholder
-        this.playerList = players.active;
-        this.waitList = players.waiting;
+        this.players = players;     // instance of Playerlist class
         this.round = 1;
         this.category = null;   // resets every round
         this.roundCards = [];   // resets every round
-        this.lastWinner = computer;
+        this.lastWinner = this.players.waiting[0] || computer;
         this.comms = comms;     // injected dependency
 
         console.log("Gameloop initialised.");
     }
 
+    checkGameState() {
+        // End conditions:
+        if (!this.running ||
+            this.players.active.length + this.players.waiting.length <= 1 ||
+            this.round === 30) {
+            this.running = false;
+            return;
+        }
+    }
+
     run() {
         this.running = true;
-        // End condition:
-        if (this.round === 30) {
-            this.running = false;
-            return;
-        }
-        // Play ad infinitum:
-        if (!this.running || this.playerList.length + this.waitList.length <= 1) {
-            this.running = false;
-            return;
-        }
+        // Break out if stopped or paused:
+        this.checkGameState();
+        if (!this.running) return;
 
         // Preamble:
         this.addWaitingPlayers();
@@ -289,17 +291,21 @@ class Gameloop {
 
     addWaitingPlayers() {
         // Move all waiting players to active list:
-        console.log(this.waitList.length + " players to join.");
-        while (this.waitList.length > 0) {
-            var newPlayer = this.waitList.shift();
-            this.playerList.push(newPlayer);
+        console.log(this.players.waiting.length + " players to join.");
+        while (this.players.waiting.length > 0) {
+            var newPlayer = this.players.waiting.shift();
+            this.players.active.push(newPlayer);
             this.comms.all.announcePlayer(newPlayer, 'in');
         }
     }
 
     playRoundPart1() {
+        // Break out if stopped or paused:
+        this.checkGameState();
+        if (!this.running) return;
+
         // Players play their cards into the "pot":
-        this.playerList.forEach(player => {
+        this.players.active.forEach(player => {
             var card = player.playCard();
             this.roundCards.push(card);
 
@@ -320,6 +326,10 @@ class Gameloop {
     // 2. no lastWinner -> randomiseCategory() & playRoundPart2()
     // 3. timer expires -> randomiseCategory() & playRoundPart2()
     waitForCategory() {
+        // Break out if stopped or paused:
+        this.checkGameState();
+        if (!this.running) return;
+
         // Start a timer, we don't want to wait all day:
         this.waitTimeout = setTimeout(function() {
             this.randomiseCategory();
@@ -368,11 +378,15 @@ class Gameloop {
     }
 
     playRoundPart2() {
+        // Break out if stopped or paused:
+        this.checkGameState();
+        if (!this.running) return;
+
         // Compare cards:
         this.comms.all.updateRoundStats();
         var winningCard = Utility.compareCards(this.roundCards, this.category),
             windex = this.roundCards.indexOf(winningCard),
-            winningPlayer = this.playerList[windex];
+            winningPlayer = this.players.active[windex];
         this.lastWinner = winningPlayer;
 
         // Add delay:
@@ -382,6 +396,10 @@ class Gameloop {
     }
 
     playRoundPart3(winningCard) {
+        // Break out if stopped or paused:
+        this.checkGameState();
+        if (!this.running) return;
+
         // Reassign all played cards to winner:
         this.roundCards.forEach(card => {
             this.lastWinner.receiveCard(card);
@@ -393,7 +411,7 @@ class Gameloop {
         this.comms.all.updatePlayerList(this.lastWinner);
 
         // Send win/loss Boolean to each player:
-        this.playerList.forEach(player => {
+        this.players.active.forEach(player => {
             this.comms.specific.sendWinLoss(player, player === this.lastWinner);
         });
 
@@ -411,6 +429,53 @@ class Gameloop {
 }
 
 
+class Playerlist {
+    constructor(players) {
+        this.active = players;
+        this.waiting = [];
+        this.paused = [];
+    }
+
+    addPlayer(player, list = 'waiting') {
+        this[list].push(player);
+    }
+
+    removePlayer(player) {
+        this.active.splice(this.active.indexOf(player), 1);
+        this.waiting.splice(this.waiting.indexOf(player), 1);
+        this.paused.splice(this.paused.indexOf(player), 1);
+    }
+
+    movePlayer(thePlayer, from, to) {
+        this[from].splice(this[from].indexOf(thePlayer), 1);
+        this[to].push(thePlayer);
+    }
+
+    pausePlayer(sockid) {
+        var thePlayer = this.getPlayerBySocketId(sockid);
+        // Transfer player from active to paused list:
+        this.movePlayer(thePlayer, 'active', 'paused');
+    }
+
+    resumePlayer(sockid) {
+        var thePlayer = this.getPlayerBySocketId(sockid);
+        // Transfer player from paused to waiting list:
+        this.movePlayer(thePlayer, 'paused', 'waiting');
+    }
+
+    getPlayerBySocketId(sockid) {
+        var thePlayer,
+            allPlayers = this.active.concat(this.waiting.concat(this.paused));
+        // Identify player:
+        allPlayers.forEach(player => {
+            if (player.sockid === sockid) {
+                thePlayer = player;
+            }
+        });
+        return thePlayer;
+    }
+}
+
 /**
  * Expose classes to parent file:
  */
@@ -420,5 +485,6 @@ module.exports = {
     Deck: Deck,
     Player: Player,
     Utility: Utility,
-    Gameloop: Gameloop
+    Gameloop: Gameloop,
+    Playerlist: Playerlist
 };

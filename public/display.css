@@ -39,15 +39,16 @@ section {
     border-radius: 8px;
     box-shadow: 0 0 6px rgba(0,0,0,0.4);
 }
-section#player-list {
+section#player-list-pane {
     float: left;
     width: 25%;
 }
-section#card {
+section#card-pane {
     float: left;
-    width: 55%;
+    width: 527px;
+    position: relative;
 }
-section#output {
+section#output-pane {
     width: auto;
     position: relative;
 }
@@ -77,7 +78,7 @@ h4 {
 /*********
 /* OUTPUT
 /*********/
-#output pre code {
+#output-pane pre code {
     display: block;
     width: 100%;
     height: 13rem;
@@ -141,9 +142,6 @@ hr.dashed-line {
 .card-front div:nth-child(2) {
     width: 100%;
 }
-.card-front div:last-child {
-    border: 0;
-}
 .flag {
     float: left;
     margin-right: 6px;
@@ -166,12 +164,9 @@ hr.dashed-line {
     background: #5080ff;
     color: white;
 }
-.card .footer {
+#card-pane .footer {
     font-size: 0.7rem;
     text-align: center;
-}
-#card {
-    position: relative;
 }
 #msg {
     position: absolute;
@@ -222,9 +217,9 @@ hr.dashed-line {
 	transform: translateY(1000px);
 }
 /* all necessary? */
-.flip-container, .card, .card-front, .card-back {
-	width: 500px;
-	height: 600px;
+.card {
+    width: 510px;
+	height: 610px;
 }
 /* flip speed goes here */
 .card {
@@ -238,6 +233,8 @@ hr.dashed-line {
 	position: absolute;
 	top: 0;
 	left: 0;
+    width: 500px;
+	height: 600px;
 }
 /* front pane, placed above back */
 .card-front { transform: rotateY(0deg); z-index: 2; }
@@ -248,7 +245,7 @@ hr.dashed-line {
 /*******
 /* LIST
 /*******/
-#player-list table {
+#player-list-pane table {
     width: 100%;
     padding: 0.5em;
     background: rgba(200,200,200,0.8);
@@ -257,11 +254,11 @@ hr.dashed-line {
     margin-bottom: 1em;
     border-collapse: separate;
 }
-#player-list tr {
+#player-list-pane tr {
     width: 100%;
     padding-left: 0;
 }
-#player-list td:first-child {
+#player-list-pane td:first-child {
     font-weight: bold;
     width: 50%;
 }
@@ -275,6 +272,15 @@ td.win-tot {
 }
 .leader td:first-child {
     color: #5080ff;
+}
+#player-list-pane h4 {
+    display: inline-block;
+}
+#leave, #join {
+    float: right
+}
+#leave {
+    display: none;
 }
 
 

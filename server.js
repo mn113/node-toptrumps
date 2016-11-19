@@ -36,10 +36,7 @@ server.listen(5000, function() {
 
 // Build default things when server starts:
 var computer = computer || new game.Player("Computer", true); // Singleton
-game.players = {
-    "active": [computer],
-    "waiting": []
-};
+game.players = new game.Playerlist([computer]);
 
 // Build empty deck of cards:
 game.theDeck = new game.Deck();
@@ -58,10 +55,8 @@ fs.readdir(baseDir, (err, files) => {
     game.theDeck.dealCards(game.players.active, 25);
 });
 
-
 // Define all Server -> Client broadcast functions:
 var comms = {
-
     // To every user:
     all: {
         announcePlayer: function(player, status) {
@@ -76,7 +71,8 @@ var comms = {
 
         updatePlayerList: function(lastWinner = null) {
             //  Update player list
-            io.emit('playerList', JSON.stringify(game.players), JSON.stringify(lastWinner));
+            console.log(game.loop.players);
+            io.emit('playerList', JSON.stringify(game.loop.players), JSON.stringify(lastWinner));
         },
 
         updateGameText: function(clientText, newLine = true) {
@@ -104,10 +100,6 @@ var comms = {
 
     // To a specific user:
     specific: {
-/*        announceGameStart: function(socketid) {
-            io.to(socketid).emit('gameStart', "");
-        },
-*/
         sendNamePrompt: function(socketid) {
             // Prompt new client for a name (Player not created yet):
             io.to(socketid).emit('namePrompt', "");
@@ -133,17 +125,19 @@ var comms = {
 
 
 // Socket.io:
-io.on('connection', function(socket){
+io.on('connection', function(socket) {
 
     // Log connections made:
     console.log("new connection:", socket.handshake.sessionID);
     // Perform duplicate check:
-    var allPlayers = game.players.active.concat(game.players.waiting);
+    var allPlayers = game.players.active.concat(game.players.waiting.concat(game.players.paused));
+    console.log(allPlayers.length + " players online:", allPlayers);
     allPlayers.forEach(player => {
         if (player.sessid === socket.handshake.sessionID) {
             // Reject player because he's already connected:
             console.log("rejecting socket with sessionId", socket.handshake.sessionID);
             socket.disconnect(true);
+            return;
         }
     });
     // sessionId was unused, allow to join:
@@ -166,7 +160,6 @@ io.on('connection', function(socket){
         // Register player:
         game.theDeck.dealCards([socket.player], 25);
         game.players.waiting.push(socket.player);
-        comms.all.updatePlayerList();
 
         // Start game loop if not yet running:
         if (typeof game.loop === "undefined") {
@@ -175,7 +168,7 @@ io.on('connection', function(socket){
         }
         else if (game.loop && game.loop.running) {
             // Let player join existing, running game loop:
-
+            console.log("Joining running loop");
         }
         else {
             // Game loop exists but needs restarting:
@@ -184,18 +177,28 @@ io.on('connection', function(socket){
         console.log(game.players);
     });
 
-    // Player chose his category:
+    // Player chooses his category:
     socket.on('categoryPicked', function(cat) {
         console.log('category:', cat);
         game.loop.playerSetCategory(cat);
     });
 
+    // Player pauses/resumes his involvement:
+    socket.on('pause', function(bool) {
+        // Get player with sockid == socket.id:
+        if (bool) {
+            game.players.pausePlayer(socket.id);
+        }
+        else {
+            game.players.resumePlayer(socket.id);
+        }
+    });
+
     // Connection dropped:
     socket.on('disconnect', function(socket){
         console.log('user disconnected');
-        // Splice him out of both players arrays:
-        game.players.active.splice(game.players.active.indexOf(socket.player), 1);
-        game.players.waiting.splice(game.players.waiting.indexOf(socket.player), 1);    // SMELLY
+        // Splice him out of all players arrays:
+        game.players.removePlayer(socket.player);
         comms.all.updatePlayerList();
     });
 

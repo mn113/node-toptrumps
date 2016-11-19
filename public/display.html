@@ -17,22 +17,24 @@
     </header>
 
     <div id="main" class=".container-fluid">
-        <section id="output">
+        <section id="output-pane">
             <h2>Output</h2>
             <pre><code id="output-box"></code></pre>
         </section>
 
-        <section id="player-list">
+        <section id="player-list-pane">
             <h2>Players online</h2>
             <h4>Active</h4>
             <table class="playing">
             </table>
             <h4>Waiting</h4>
+            <button type="button" class="btn btn-primary btn-sm" id="leave">Leave Game</button>
+            <button type="button" class="btn btn-primary btn-sm" id="join">Join Game</button>
             <table class="waiting">
             </table>
         </section>
 
-        <section id="card" class="flip-container">
+        <section id="card-pane" class="flip-container">
             <div id="timer" class="paused"></div>
             <div id="msg">You to choose! <span id="countdown"></span></div>
             <h2>Your next card</h2>
@@ -44,7 +46,7 @@
                     </div>
                     <div>
                         <h4>Capital: <span></span></h4>
-                        <a href="#" name="capital.lat">Latitude: <span></span></a> &middot; 
+                        <a href="#" name="capital.lat">Latitude: <span></span></a> &middot;
                         <a href="#" name="capital.long">Longitude: <span></span></a>
                     </div>
                     <div>

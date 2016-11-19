@@ -99,8 +99,8 @@ var display = (function() {
     }
 
     function renderPlayers(playerList, lastWinner) {
-        var $table1 = $("#player-list .playing"),
-            $table2 = $("#player-list .waiting");
+        var $table1 = $("#player-list-pane .playing"),
+            $table2 = $("#player-list-pane .waiting");
         // Clear out:
         $table1.html("");
         $table2.html("");
@@ -151,7 +151,7 @@ var display = (function() {
         var status = didWin ? 'win' : 'loss';
         // Insert a smiley face:
         var $face = $('<svg id="face"><use xlink:href="face.svg#'+ status +'"></use></svg>');
-        $face.appendTo("#output");
+        $face.appendTo("#output-pane");
         // CSS animation runs automatically
         // Remove element when done:
         setTimeout(function() {
@@ -234,6 +234,20 @@ $(function() {
             socket.emit('categoryPicked', evt.currentTarget.name);
             display.endYourTurn();
         }
+    });
+
+    // Leave button:
+    $('#leave').on('click', function() {
+        $('#join').show();
+        $(this).hide();
+        socket.emit('pause', true);
+    });
+
+    // join button:
+    $('#join').on('click', function() {
+        $('#leave').show();
+        $(this).hide();
+        socket.emit('pause', false);
     });
 
     // Load country codes lookup table from CSV file:
