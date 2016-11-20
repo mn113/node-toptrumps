@@ -111,10 +111,10 @@ var display = (function() {
             $("<td>").addClass("win-tot").html(player.wins + '&nbsp;wins').appendTo(tr);
             $("<td>").addClass("card-tot").html(player.cards.length + '&nbsp;cards').appendTo(tr);
             tr.appendTo($table1);
-            // Prefix the lastWinner's name:
+            // Style the lastWinner's name:
             if (player.name === lastWinner.name) { tr.addClass("leader"); }
         });
-        playerList.waiting.forEach(player => {
+        playerList.waiting.concat(playerList.paused).forEach(player => {
             // Build new <li>:
             var tr = $("<tr>").attr("id", player.id);
             $("<td>").html(player.name).appendTo(tr);

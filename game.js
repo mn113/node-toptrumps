@@ -251,13 +251,13 @@ var computer = computer || new Player("Computer", true); // Singleton
 class Gameloop {
     constructor (players, comms) {
         this.running = false;
-        this.waitTimeout = null;    // setTimeout placeholder
         this.players = players;     // instance of Playerlist class
-        this.round = 1;
+        this.comms = comms;         // injected dependency
+        this.waitTimeout = null;    // setTimeout placeholder
+        this.round = 1;         // incerements
         this.category = null;   // resets every round
         this.roundCards = [];   // resets every round
         this.lastWinner = this.players.waiting[0] || computer;
-        this.comms = comms;     // injected dependency
 
         console.log("Gameloop initialised.");
     }
@@ -267,8 +267,8 @@ class Gameloop {
         if (!this.running ||
             this.players.active.length + this.players.waiting.length <= 1 ||
             this.round === 30) {
-            this.running = false;
-            return;
+            // Stop the loop:
+            this.stop();
         }
     }
 
@@ -290,13 +290,13 @@ class Gameloop {
     }
 
     addWaitingPlayers() {
+        console.log(this.players.waiting.length + " players waiting to join.");
         // Move all waiting players to active list:
-        console.log(this.players.waiting.length + " players to join.");
-        while (this.players.waiting.length > 0) {
-            var newPlayer = this.players.waiting.shift();
-            this.players.active.push(newPlayer);
-            this.comms.all.announcePlayer(newPlayer, 'in');
-        }
+        this.players.waiting.forEach(player => {
+            this.players.movePlayer(player, 'waiting', 'active');
+            this.comms.all.announcePlayer(player, 'in');
+            this.comms.all.updatePlayerList();
+        });
     }
 
     playRoundPart1() {
@@ -416,9 +416,7 @@ class Gameloop {
         });
 
         // Round over!
-        this.roundCards = [];
-        this.category = null;
-        this.round++;
+        this.reset();
         this.comms.all.roundEnd();
 
         // Delay, then back to the beginning of the Gameloop!
@@ -426,14 +424,46 @@ class Gameloop {
             this.run();
         }, 2000);
     }
+
+    stop() {
+        // Make Gameloop stop (when running condition is next checked):
+        this.running = false;
+        console.log("Gameloop stopped.");
+        // Cleanup on aisle 3:
+        this.reset();
+        this.lastWinner = computer;
+    }
+
+    reset() {
+        // Set default values for loop properties:
+        clearTimeout(this.waitTimeout);
+        this.round++;
+        this.category = null;
+        this.roundCards = [];
+    }
+
+    pausePlayer(player) {
+        // Transfer player from active to paused list:
+        this.players.movePlayer(player, 'active', 'paused');
+        // The loop will then check if it should stop
+    }
+
+    resumePlayer(player) {
+        // Transfer player from paused to waiting list:
+        this.players.movePlayer(player, 'paused', 'waiting');
+        // Restart the loop:
+        if (!this.running) this.run();
+    }
+
 }
 
 
 class Playerlist {
-    constructor(players) {
+    constructor(players, comms) {
         this.active = players;
         this.waiting = [];
         this.paused = [];
+        this.comms = comms;
     }
 
     addPlayer(player, list = 'waiting') {
@@ -441,26 +471,26 @@ class Playerlist {
     }
 
     removePlayer(player) {
-        this.active.splice(this.active.indexOf(player), 1);
-        this.waiting.splice(this.waiting.indexOf(player), 1);
-        this.paused.splice(this.paused.indexOf(player), 1);
+        if (this.active.indexOf(player) !== -1) {
+            this.active.splice(this.active.indexOf(player), 1);
+        }
+        else if (this.waiting.indexOf(player) !== -1) {
+            this.waiting.splice(this.waiting.indexOf(player), 1);
+        }
+        else if (this.paused.indexOf(player) !== -1) {
+            this.paused.splice(this.paused.indexOf(player), 1);
+        }
+        this.comms.all.updatePlayerList(); // HOW TO RUN THIS HERE?
     }
 
-    movePlayer(thePlayer, from, to) {
-        this[from].splice(this[from].indexOf(thePlayer), 1);
-        this[to].push(thePlayer);
-    }
-
-    pausePlayer(sockid) {
-        var thePlayer = this.getPlayerBySocketId(sockid);
-        // Transfer player from active to paused list:
-        this.movePlayer(thePlayer, 'active', 'paused');
-    }
-
-    resumePlayer(sockid) {
-        var thePlayer = this.getPlayerBySocketId(sockid);
-        // Transfer player from paused to waiting list:
-        this.movePlayer(thePlayer, 'paused', 'waiting');
+    movePlayer(player, from, to) {
+        // Transfer a player between any 2 lists:
+        var index = this[from].indexOf(player);
+        if (index !== -1) {
+            this[from].splice(index, 1);
+            this[to].push(player);
+        }
+        this.comms.all.updatePlayerList(); // HOW TO RUN THIS HERE?
     }
 
     getPlayerBySocketId(sockid) {
@@ -473,6 +503,20 @@ class Playerlist {
             }
         });
         return thePlayer;
+    }
+
+    toString(list) {
+        var output = list + ': ' + this[list].length + ' [';
+        this[list].forEach(player => {
+            output += player.name + ', ';
+        });
+        return output + ']';
+    }
+
+    allToString() {
+        return  this.toString('active') + '\n' +
+                this.toString('waiting') + '\n' +
+                this.toString('paused');
     }
 }
 

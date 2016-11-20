@@ -3,7 +3,7 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 // My modules:
-var game = require('./game.js');    // == object {Card, Deck, Player, Utility, Gameloop}
+var game = require('./game.js');    // == object {Card, Deck, Player, Utility, Gameloop, Playerlist}
 
 // Configure Express app:
 app.set('port', (process.env.PORT || 5000));
@@ -34,27 +34,6 @@ server.listen(5000, function() {
 });
 
 
-// Build default things when server starts:
-var computer = computer || new game.Player("Computer", true); // Singleton
-game.players = new game.Playerlist([computer]);
-
-// Build empty deck of cards:
-game.theDeck = new game.Deck();
-// Fill theDeck from JSON file reads:
-const fs = require('fs');
-const path = require('path');
-const baseDir = 'factbook_all/';
-fs.readdir(baseDir, (err, files) => {
-    files.forEach(file => {
-        var c = path.parse(file).name;
-        var card = new game.Card(c);
-        game.theDeck.addCard(card);
-    });
-    console.log(game.theDeck.cards.length + " countries loaded.");
-    game.theDeck.shuffle();
-    game.theDeck.dealCards(game.players.active, 25);
-});
-
 // Define all Server -> Client broadcast functions:
 var comms = {
     // To every user:
@@ -71,7 +50,7 @@ var comms = {
 
         updatePlayerList: function(lastWinner = null) {
             //  Update player list
-            console.log(game.loop.players);
+            console.log(game.loop.players.allToString());
             io.emit('playerList', JSON.stringify(game.loop.players), JSON.stringify(lastWinner));
         },
 
@@ -124,14 +103,38 @@ var comms = {
 };
 
 
+// Build default things when server starts:
+var computer = computer || new game.Player("Computer", true); // Singleton
+var players = new game.Playerlist([computer], comms);
+
+// Build empty deck of cards:
+game.theDeck = new game.Deck();
+// Fill theDeck from JSON file reads:
+const fs = require('fs');
+const path = require('path');
+const baseDir = 'factbook_all/';
+fs.readdir(baseDir, (err, files) => {
+    files.forEach(file => {
+        var c = path.parse(file).name;
+        var card = new game.Card(c);
+        game.theDeck.addCard(card);
+    });
+    console.log(game.theDeck.cards.length + " countries loaded.");
+    game.theDeck.shuffle();
+    game.theDeck.dealCards(players.active, 25);
+});
+
+// Build the game loop singleton:
+game.loop = new game.Gameloop(players, comms);
+
+
 // Socket.io:
 io.on('connection', function(socket) {
 
     // Log connections made:
     console.log("new connection:", socket.handshake.sessionID);
     // Perform duplicate check:
-    var allPlayers = game.players.active.concat(game.players.waiting.concat(game.players.paused));
-    console.log(allPlayers.length + " players online:", allPlayers);
+    var allPlayers = game.loop.players.active.concat(game.loop.players.waiting.concat(game.loop.players.paused));
     allPlayers.forEach(player => {
         if (player.sessid === socket.handshake.sessionID) {
             // Reject player because he's already connected:
@@ -159,14 +162,10 @@ io.on('connection', function(socket) {
         console.log('a user connected: ' + socket.player.name + ' aka session ' + socket.player.sessid);
         // Register player:
         game.theDeck.dealCards([socket.player], 25);
-        game.players.waiting.push(socket.player);
+        game.loop.players.waiting.push(socket.player);
+        comms.all.updatePlayerList();
 
-        // Start game loop if not yet running:
-        if (typeof game.loop === "undefined") {
-            game.loop = new game.Gameloop(game.players, comms);
-            game.loop.run();
-        }
-        else if (game.loop && game.loop.running) {
+        if (game.loop && game.loop.running) {
             // Let player join existing, running game loop:
             console.log("Joining running loop");
         }
@@ -174,7 +173,6 @@ io.on('connection', function(socket) {
             // Game loop exists but needs restarting:
             game.loop.run();
         }
-        console.log(game.players);
     });
 
     // Player chooses his category:
@@ -185,12 +183,13 @@ io.on('connection', function(socket) {
 
     // Player pauses/resumes his involvement:
     socket.on('pause', function(bool) {
-        // Get player with sockid == socket.id:
         if (bool) {
-            game.players.pausePlayer(socket.id);
+            console.log(socket.player.name, 'clicked leave');
+            game.loop.pausePlayer(socket.player);
         }
         else {
-            game.players.resumePlayer(socket.id);
+            console.log(socket.player.name, 'clicked join');
+            game.loop.resumePlayer(socket.player);
         }
     });
 
@@ -198,8 +197,7 @@ io.on('connection', function(socket) {
     socket.on('disconnect', function(socket){
         console.log('user disconnected');
         // Splice him out of all players arrays:
-        game.players.removePlayer(socket.player);
-        comms.all.updatePlayerList();
+        game.loop.players.removePlayer(socket.player);
     });
 
 });
