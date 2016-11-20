@@ -111,10 +111,11 @@ var display = (function() {
             $("<td>").addClass("win-tot").html(player.wins + '&nbsp;wins').appendTo(tr);
             $("<td>").addClass("card-tot").html(player.cards.length + '&nbsp;cards').appendTo(tr);
             tr.appendTo($table1);
-            // Style the lastWinner's name:
-            if (player.name === lastWinner.name) { tr.addClass("leader"); }
+            // Style the lastWinner's name (if existing):
+            if (lastWinner && player.name === lastWinner.name) { tr.addClass("leader"); }
         });
-        playerList.waiting.concat(playerList.paused).forEach(player => {
+        var outPlayers = playerList.waiting.concat(playerList.paused);
+        outPlayers.forEach(player => {
             // Build new <li>:
             var tr = $("<tr>").attr("id", player.id);
             $("<td>").html(player.name).appendTo(tr);
@@ -306,14 +307,13 @@ socket.on('categoryPrompt', function() {
 });
 
 socket.on('playerList', function(data, lastWinner) {
-    //console.log('playerList', data);
     var playerList = JSON.parse(data);
+    console.log(playerList);
     lastWinner = JSON.parse(lastWinner);
     display.renderPlayers(playerList, lastWinner);
 });
 
 socket.on('yourCard', function(data) {
-    //console.log('yourCard', data);
     var country = JSON.parse(data);
     display.renderCountry(country);
 });
@@ -323,6 +323,9 @@ socket.on('winLoss', function(didWin) {
 });
 
 socket.on('output', function(data) {
-    //console.log('output', data);
     display.renderOutput(data);
+});
+
+socket.on('playerStatus', function(status) {
+    $("body").removeClass("active waiting paused").addClass(status);     // active, waiting, paused
 });

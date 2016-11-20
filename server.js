@@ -51,7 +51,7 @@ var comms = {
         updatePlayerList: function(lastWinner = null) {
             //  Update player list
             console.log(game.loop.players.allToString());
-            io.emit('playerList', JSON.stringify(game.loop.players), JSON.stringify(lastWinner));
+            io.emit('playerList', JSON.stringify(game.loop.players.getAll()), JSON.stringify(lastWinner));
         },
 
         updateGameText: function(clientText, newLine = true) {
@@ -98,6 +98,10 @@ var comms = {
 
         sendWinLoss: function(player, didWin) {
             io.to(player.sockid).emit('winLoss', didWin);
+        },
+
+        sendPlayerStatus: function(player, status) {
+            io.to(player.sockid).emit('playerStatus', status);
         }
     }
 };

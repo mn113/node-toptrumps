@@ -295,7 +295,6 @@ class Gameloop {
         this.players.waiting.forEach(player => {
             this.players.movePlayer(player, 'waiting', 'active');
             this.comms.all.announcePlayer(player, 'in');
-            this.comms.all.updatePlayerList();
         });
     }
 
@@ -402,12 +401,18 @@ class Gameloop {
 
         // Reassign all played cards to winner:
         this.roundCards.forEach(card => {
-            this.lastWinner.receiveCard(card);
+            try {
+                this.lastWinner.receiveCard(card);
+            }
+            catch (e) {
+                console.log(e);
+            }
         });
         this.lastWinner.wins++;
         this.comms.all.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> won with <span class='country'>" + winningCard.name + "</span>", false);
         this.comms.all.updateGameText(" and gained " + (this.roundCards.length - 1) + " card(s).");
         this.comms.all.updateGameText("<hr>", false);   // prevent newline gap
+        console.log("-----");   // <hr>
         this.comms.all.updatePlayerList(this.lastWinner);
 
         // Send win/loss Boolean to each player:
@@ -445,6 +450,7 @@ class Gameloop {
     pausePlayer(player) {
         // Transfer player from active to paused list:
         this.players.movePlayer(player, 'active', 'paused');
+        this.comms.all.announcePlayer(player, 'out');
         // The loop will then check if it should stop
     }
 
@@ -491,18 +497,16 @@ class Playerlist {
             this[to].push(player);
         }
         this.comms.all.updatePlayerList(); // HOW TO RUN THIS HERE?
+        // Inform them:
+        this.comms.specific.sendPlayerStatus(player, to);
     }
 
-    getPlayerBySocketId(sockid) {
-        var thePlayer,
-            allPlayers = this.active.concat(this.waiting.concat(this.paused));
-        // Identify player:
-        allPlayers.forEach(player => {
-            if (player.sockid === sockid) {
-                thePlayer = player;
-            }
-        });
-        return thePlayer;
+    getAll() {
+        return {
+            active: this.active,
+            waiting: this. waiting,
+            paused: this.paused
+        };
     }
 
     toString(list) {
