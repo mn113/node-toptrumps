@@ -38,6 +38,7 @@ var display = (function() {
 
     function renderCountry(cdata) {
         setFlag(cdata.code);
+        setMap(cdata.code);
         var $card = $(".card");
         $card.find('h3').html(cdata.name);
         $card.find('h4:first-of-type span').html(cdata.capital.name);
@@ -189,6 +190,21 @@ var display = (function() {
 
         // Insert into flag holder element:
         $(".card .flag").html('<img src="'+ imgSrc +'">');
+    }
+
+    function setMap(code) {
+        // Convert NA code to ISO code:
+        var mapDir = "/mapsicon/all/",
+            mapSrc;
+        try {
+            mapSrc = mapDir + window.codesTable[code] + "/96.png";
+        }
+        catch (e) {
+            mapSrc = "";
+        }
+
+        // Insert into flag holder element:
+        $(".card .map").html('<img src="'+ mapSrc +'">');
     }
 
     function flipCard(inOut) {

@@ -66,10 +66,6 @@ h1 {
 h2 {
     font-size: 1.4rem;
 }
-h3 {
-    font-size: 1.8rem;
-    line-height: 64px;    /* because of 64px tall flag */
-}
 h4 {
     font-size: 1.1rem;
 }
@@ -142,9 +138,18 @@ hr.dashed-line {
 .card-front div:nth-child(2) {
     width: 100%;
 }
+.card-front h3 {
+    font-size: 1.8rem;
+    line-height: 64px;    /* because of 64px tall flag */
+    display: inline-block;
+    width: 300px;        /* because flag and map need to fit on same line */
+}
 .flag {
     float: left;
     margin-right: 6px;
+}
+.map {
+    float: right;
 }
 .card:not(.your-turn) {
     cursor: not-allowed;
