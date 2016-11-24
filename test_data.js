@@ -11,9 +11,9 @@ fs.readdir(baseDir, (err, files) => {
 
         // TEST
         console.log(
-            card.name
-/*            card.code,
-            card.getProperty('capital.lat'),
+//            card.name,
+            card.code,
+/*            card.getProperty('capital.lat'),
             card.getProperty('capital.long'),
             card.getProperty('area.land'),
             card.getProperty('area.water'),
@@ -25,12 +25,12 @@ fs.readdir(baseDir, (err, files) => {
             card.getProperty('borders.number'),
             card.getProperty('transport.road'),
             card.getProperty('transport.rail'),
-            card.getProperty('transport.water'),
+            card.getProperty('transport.water'),*/
             card.getProperty('gdp.net'),
             card.getProperty('gdp.percapita'),
             card.getProperty('population.number'),
             card.getProperty('population.lgurban'),
             card.getProperty('population.density')
-*/        );
+        );
     });
 });

@@ -5,11 +5,12 @@ const baseDir = 'factbook_all/';
 
 // Define a card:
 class Card {
+    //Extract all required data from JSON and set it as Card properties:
     constructor(countryCode) {
         this.code = countryCode;
         // open file
         var countryJSON = JSON.parse(fs.readFileSync(baseDir + countryCode +'.json', 'utf8'));
-        // Extract individual data pieces and store in my own structured object:
+        // Extract individual data pieces:
         this.name = Utility.assignOrNull(countryJSON, "Government", "Country name", "conventional short form");
         // Account for name aberrations:
         if (!this.name) { this.name = Utility.assignOrNull(countryJSON, "Government", "Country name", "Dutch short form"); }
@@ -66,23 +67,30 @@ class Card {
         this.borders.list = Utility.assignOrNull(countryJSON, "Geography", "Land boundaries", "border countries");
         // Split and count the comma-separated list of neighbours, or use zero:
         this.borders.number = this.borders.list ? this.borders.list.split(', ').length : 0;
+
         this.transport = {};
         this.transport.road = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Transportation", "Roadways", "total"), "", "km");
         this.transport.rail = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Transportation", "Railways", "total"), "", "km");
         this.transport.water = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Transportation", "Waterways"), "", "km");
+
         this.gdp = {};
-        this.gdp.net = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Economy", "GDP (official exchange rate)"), "$", "");
-        this.gdp.percapita = Utility.parseNumber(Utility.assignOrNull(countryJSON, "Economy", "GDP - per capita (PPP)"), "$", "");
+        this.gdp.net = Utility.parseMoney(Utility.assignOrNull(countryJSON, "Economy", "GDP (purchasing power parity)"));
+        this.gdp.percapita = Utility.parseMoney(Utility.assignOrNull(countryJSON, "Economy", "GDP - per capita (PPP)"));
+
         this.population = {};
         this.population.number = Utility.parseNumber(Utility.assignOrNull(countryJSON, "People and Society", "Population"));
+        // Handle million vs non-million values in lgurban:
         this.population.lgurban = Utility.parseNumber(Utility.assignOrNull(countryJSON, "People and Society", "Major urban areas - population"), "", "");
+        // Check for non-integer, e.g. 1.5 (million) and if so, multiply:
+        if (this.population.lgurban % 1 !== 0) { this.population.lgurban *= 1000000; }
+
         this.population.lifexp = Utility.parseNumber(Utility.assignOrNull(countryJSON, "People and Society", "Life expectancy at birth", "total population"));
         this.population.youngest = Utility.parseNumber(Utility.assignOrNull(countryJSON, "People and Society", "Age structure", "0-14 years"), "", "%");
         this.population.oldest = Utility.parseNumber(Utility.assignOrNull(countryJSON, "People and Society", "Age structure", "65 years and over"), "", "%");
         this.population.medage = Utility.parseNumber(Utility.assignOrNull(countryJSON, "People and Society", "Median age", "total"));
         //this.population.births = parseNumber(assignOrNull(countryJSON, "People and Society", "Birth rate"), "", "%");
         // Calculate density manually:
-        this.population.density = this.population.number / this.area.total;
+        this.population.density = (this.population.number / this.area.total).toFixed(1);
 
         // Register in Deck
     }
@@ -206,7 +214,44 @@ class Utility {
             var commas = /,/g;
             var rawNum = foundNum.replace(commas, '');
             // parseFloat it:
-            return parseFloat(rawNum);
+            try {
+                return parseFloat(rawNum);
+            }
+            catch (e) {
+                console.log("NaN", rawNum);
+                return rawNum;
+            }
+        } catch (e) {
+            //console.log(text, e);   // SHOWS MANY ERRORS: Cannot read property '0' of null in parseNumber()
+            return 0;
+        }
+    }
+
+    // Parse monetary values out of a text string:
+    static parseMoney(text) {
+        // Find money sequence using regex: (e.g. $5.4 billion or $94,700)
+        var re = new RegExp("[\\s]*([0-9\\.,])+[\\s]*" + "[mb]?(tr)?(illion)?");
+        //console.log(re);
+        try {
+            var foundAmount = re.exec(text)[0];
+            //console.log("Found:", foundAmount);
+            // Strip commas:
+            var commas = /,/g;
+            var rawAmount = foundAmount.replace(commas, '');
+            var firstPart = rawAmount.split(" ")[0];
+            // Test how big a suffix the amount has:
+            if (rawAmount.match("million")) {
+                return 1000000 * parseFloat(firstPart);
+            }
+            else if (rawAmount.match("billion")) {
+                return 1000000000 * parseFloat(firstPart);
+            }
+            else if (rawAmount.match("trillion")) {
+                return 1000000000000 * parseFloat(firstPart);
+            }
+            else {
+                return parseFloat(rawAmount);
+            }
         } catch (e) {
             //console.log(text, e);   // SHOWS MANY ERRORS: Cannot read property '0' of null in parseNumber()
             return 0;
