@@ -71,7 +71,7 @@ var display = (function() {
             return "unknown";
         }
         // Perform formatting based on requested type:
-        var nf = new Intl.NumberFormat({ maximumFractionDigits: 0 });   // round it off
+        var nf = new Intl.NumberFormat({ maximumFractionDigits: 0 });   // round it off     // NO Intl in SAFARI
         switch (type) {
             case 'distance':
                 return nf.format(number) + 'm';
@@ -104,7 +104,7 @@ var display = (function() {
         // Clear out:
         $table1.html("");
         $table2.html("");
-        playerList.active.forEach(player => {
+        playerList.active.forEach(function(player) {
             // Build new <tr>:
             var tr = $("<tr>").attr("id", player.id);
             $("<td>").html(player.name).appendTo(tr);
@@ -115,7 +115,7 @@ var display = (function() {
             if (lastWinner && player.name === lastWinner.name) { tr.addClass("leader"); }
         });
         var outPlayers = playerList.waiting.concat(playerList.paused);
-        outPlayers.forEach(player => {
+        outPlayers.forEach(function(player) {
             // Build new <li>:
             var tr = $("<tr>").attr("id", player.id);
             $("<td>").html(player.name).appendTo(tr);
@@ -220,7 +220,7 @@ var display = (function() {
                 $cont.addClass("pre-flip").removeClass("post-flip");
             }, 1000);
         }
-        console.log("flipped", inOut);
+        //console.log("flipped", inOut);
     }
 
     // Expose publicly:
@@ -317,13 +317,13 @@ socket.on('roundEnd', function() {
 });
 
 socket.on('categoryPrompt', function() {
-    console.log("received categoryPrompt");
+    //console.log("received categoryPrompt");
     display.beginYourTurn();
 });
 
 socket.on('playerList', function(data, lastWinner) {
     var playerList = JSON.parse(data);
-    console.log(playerList);
+    //console.log(playerList);
     lastWinner = JSON.parse(lastWinner);
     display.renderPlayers(playerList, lastWinner);
 });
@@ -335,6 +335,12 @@ socket.on('yourCard', function(data) {
 
 socket.on('winLoss', function(didWin) {
     display.smile(didWin);
+});
+
+socket.on('gameOver', function(didWin) {
+    if (!didWin) {
+        window.alert("Game over! You lost all your cards.");
+    }
 });
 
 socket.on('output', function(data) {

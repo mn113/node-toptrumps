@@ -79,29 +79,36 @@ var comms = {
 
     // To a specific user:
     specific: {
+        // Prompt new client for a name (Player not created yet):
         sendNamePrompt: function(socketid) {
-            // Prompt new client for a name (Player not created yet):
             io.to(socketid).emit('namePrompt', "");
         },
 
+        // Prompt specific user to select the round category:
         sendCategoryPrompt: function(player) {
-            // Prompt specific user to select the round category:
             io.to(player.sockid).emit('output', "Please choose your category...", false);
             io.to(player.sockid).emit('categoryPrompt', "");
         },
 
+        //  Let a player see his top card:
         sendRoundCard: function(player, card) {
-            //  Let a player see his top card:
             io.to(player.sockid).emit('yourCard', JSON.stringify(card));
             io.to(player.sockid).emit('output', "You have drawn <span class='country'>" + card.name + "</span>. ", false);
         },
 
+        // Update a player on his outcome of a round:
         sendWinLoss: function(player, didWin) {
             io.to(player.sockid).emit('winLoss', didWin);
         },
 
+        // Inform a player's browser he is active/waiting/paused:
         sendPlayerStatus: function(player, status) {
             io.to(player.sockid).emit('playerStatus', status);
+        },
+
+        // Inform a player he lost/won the overall game:
+        gameOver: function(player, didWin) {
+            io.to(player.sockid).emit('gameOver', didWin);
         }
     }
 };
@@ -112,7 +119,7 @@ var computer = computer || new game.Player("Computer", true); // Singleton
 var players = new game.Playerlist([computer], comms);
 
 // Build empty deck of cards:
-game.theDeck = new game.Deck();
+var theDeck = new game.Deck();
 // Fill theDeck from JSON file reads:
 const fs = require('fs');
 const path = require('path');
@@ -121,15 +128,15 @@ fs.readdir(baseDir, (err, files) => {
     files.forEach(file => {
         var c = path.parse(file).name;
         var card = new game.Card(c);
-        game.theDeck.addCard(card);
+        theDeck.addCard(card);
     });
-    console.log(game.theDeck.cards.length + " countries loaded.");
-    game.theDeck.shuffle();
-    game.theDeck.dealCards(players.active, 25);
+    console.log(theDeck.cards.length + " countries loaded.");
+    theDeck.shuffle();
+    theDeck.dealCards(players.active, 5);
 });
 
 // Build the game loop singleton:
-game.loop = new game.Gameloop(players, comms);
+game.loop = new game.Gameloop(players, theDeck, comms);
 
 
 // Socket.io:
@@ -165,7 +172,7 @@ io.on('connection', function(socket) {
         socket.player.sockid = socket.id;
         console.log('a user connected: ' + socket.player.name + ' aka session ' + socket.player.sessid);
         // Register player:
-        game.theDeck.dealCards([socket.player], 25);
+        game.loop.deck.dealCards([socket.player], 5);
         game.loop.players.waiting.push(socket.player);
         comms.all.updatePlayerList();
 

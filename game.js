@@ -122,6 +122,12 @@ class Deck {
         this.cards.push(card);
     }
 
+    addCards(cardArray) {
+        cardArray.forEach(card => {
+            this.addCard(card);
+        });
+    }
+
     getNextCard() {
         return this.cards.shift();
     }
@@ -168,7 +174,7 @@ class Player {
     }
 
     status() {
-        console.log(this.name, this.wins, this.cards.length, this.cards[0].name);
+        console.log(this.name, this.wins + " wins", this.cards.length + " cards");
     }
 }
 
@@ -294,12 +300,13 @@ var computer = computer || new Player("Computer", true); // Singleton
 
 // Define the main loop that runs the game, and related functions:
 class Gameloop {
-    constructor (players, comms) {
+    constructor (players, deck, comms) {
         this.running = false;
         this.players = players;     // instance of Playerlist class
+        this.deck = deck;
         this.comms = comms;         // injected dependency
         this.waitTimeout = null;    // setTimeout placeholder
-        this.round = 1;         // incerements
+        this.round = 1;         // increments
         this.category = null;   // resets every round
         this.roundCards = [];   // resets every round
         this.lastWinner = this.players.waiting[0] || computer;
@@ -310,8 +317,7 @@ class Gameloop {
     checkGameState() {
         // End conditions:
         if (!this.running ||
-            this.players.active.length + this.players.waiting.length <= 1 ||
-            this.round === 30) {
+            this.players.active.length + this.players.waiting.length <= 1) {
             // Stop the loop:
             this.stop();
         }
@@ -354,12 +360,19 @@ class Gameloop {
             this.roundCards.push(card);
 
             // Also let everybody see their top card:
-            this.comms.specific.sendRoundCard(player, card); //  (also sends a message)
+            if (!player.isComputer) {
+                this.comms.specific.sendRoundCard(player, card); //  (also sends a message)
+            }
         });
 
         // Somebody must now choose a category:
-        if (this.lastWinner) {
-            this.comms.all.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> to choose category...", false);
+        try {
+            if (this.lastWinner) {
+                this.comms.all.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> to choose category...", false);
+            }
+        }
+        catch (e) {
+            console.log(e);
         }
         this.comms.all.roundStart();
         this.waitForCategory();
@@ -444,6 +457,19 @@ class Gameloop {
         this.checkGameState();
         if (!this.running) return;
 
+        // Send win/loss Boolean to each player:
+        this.players.active.forEach(player => {
+            this.comms.specific.sendWinLoss(player, player === this.lastWinner);
+        });
+
+        // General stats/comms:
+        this.lastWinner.wins++;
+        this.comms.all.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> won with <span class='country'>" + winningCard.name + "</span>", false);
+        this.comms.all.updateGameText(" and gained " + (this.roundCards.length - 1) + " card(s).");
+        this.comms.all.updateGameText("<hr>", false);   // prevent newline gap
+        console.log("-----");   // <hr>
+        this.comms.all.updatePlayerList(this.lastWinner);
+
         // Reassign all played cards to winner:
         this.roundCards.forEach(card => {
             try {
@@ -453,17 +479,10 @@ class Gameloop {
                 console.log(e);
             }
         });
-        this.lastWinner.wins++;
-        this.comms.all.updateGameText("<span class='player'>" + this.lastWinner.name + "</span> won with <span class='country'>" + winningCard.name + "</span>", false);
-        this.comms.all.updateGameText(" and gained " + (this.roundCards.length - 1) + " card(s).");
-        this.comms.all.updateGameText("<hr>", false);   // prevent newline gap
-        console.log("-----");   // <hr>
-        this.comms.all.updatePlayerList(this.lastWinner);
+        this.comms.all.updatePlayerList();
 
-        // Send win/loss Boolean to each player:
-        this.players.active.forEach(player => {
-            this.comms.specific.sendWinLoss(player, player === this.lastWinner);
-        });
+        // Check card totals:
+        this.checkCards();
 
         // Round over!
         this.reset();
@@ -473,6 +492,27 @@ class Gameloop {
         setTimeout(() => {
             this.run();
         }, 2000);
+    }
+
+    // Check everyone for zero cards left:
+    checkCards() {
+        this.players.active.forEach(player => {
+            if (player.cards.length === 0) {
+                if (!player.isComputer) {
+                    // "You lost!"
+                    this.comms.specific.gameOver(player, false);
+                    this.pausePlayer(player);
+                }
+                else {
+                    this.comms.all.updateGameText("The computer was defeated!");
+                    // Deal computer back in:
+                    this.deck.dealCards([computer], 20);
+                    computer.status();
+                }
+
+            }
+        });
+        this.comms.all.updatePlayerList();
     }
 
     stop() {
@@ -502,12 +542,15 @@ class Gameloop {
     resumePlayer(player) {
         // Transfer player from paused to waiting list:
         this.players.movePlayer(player, 'paused', 'waiting');
+        // Give him cards:
+        if (player.cards.length === 0) {
+            this.deck.dealCards([player], 20);
+        }
         // Restart the loop:
         if (!this.running) this.run();
     }
 
 }
-
 
 class Playerlist {
     constructor(players, comms) {
@@ -541,7 +584,7 @@ class Playerlist {
             this[from].splice(index, 1);
             this[to].push(player);
         }
-        this.comms.all.updatePlayerList(); // HOW TO RUN THIS HERE?
+        this.comms.all.updatePlayerList();
         // Inform them:
         this.comms.specific.sendPlayerStatus(player, to);
     }
