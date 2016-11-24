@@ -9,14 +9,11 @@ var display = (function() {
 
             // Q&D field validation:
             $("#modal").on('keyup', '.modal-body input', function(evt) {
-                //console.log(this.value);
                 // Name must have length:
-                if (this.value.length > 0) {
-                    $("#namePrompt .modal-footer button").prop("disabled", false);
+                if (this.value.length > 0 && this.value !== 'Computer') {
                     // Enter submits if valid:
-                    if (evt.which === 13) {
-                        $("#namePrompt .modal-footer button").submit();
-                    }
+                    if (evt.which === 13) submitForm();
+                    $("#namePrompt .modal-footer button").prop("disabled", false);
                 }
                 else {
                     $("#namePrompt .modal-footer button").prop("disabled", true);
@@ -25,15 +22,17 @@ var display = (function() {
             });
 
             // Submit button:
-            $("#modal").on('click', '.modal-footer button', function() {
-                var name = $("#namePrompt .modal-body input").val();
-                // Sanitize name before submit:
-                // TODO!
-                socket.emit('myNameIs', name);
-                // Close modal:
-                $('#namePrompt').modal('hide');
-            });
+            $("#modal").on('click', '.modal-footer button', submitForm);
         });
+
+        function submitForm() {
+            var name = $("#namePrompt .modal-body input").val();
+            // Sanitize name before submit:
+            // TODO!
+            socket.emit('myNameIs', name);
+            // Close modal:
+            $('#namePrompt').modal('hide');
+        }
     }
 
     function renderCountry(cdata) {
