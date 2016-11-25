@@ -13,16 +13,16 @@ var display = (function() {
                 if (this.value.length > 0 && this.value !== 'Computer') {
                     // Enter submits if valid:
                     if (evt.which === 13) submitForm();
-                    $("#namePrompt .modal-footer button").prop("disabled", false);
+                    $("#namePrompt button").prop("disabled", false);
                 }
                 else {
-                    $("#namePrompt .modal-footer button").prop("disabled", true);
+                    $("#namePrompt button").prop("disabled", true);
                 }
 
             });
 
             // Submit button:
-            $("#modal").on('click', '.modal-footer button', submitForm);
+            $("#modal").on('click', 'button', submitForm);
         });
 
         function submitForm() {
@@ -223,6 +223,13 @@ var display = (function() {
         //console.log("flipped", inOut);
     }
 
+    function modalInfo() {
+        $("#modal").load('info.html', function() {
+            // Once the modal html is loaded, set up its behaviours:
+            $('#info').modal('show');
+        });
+    }
+
     // Expose publicly:
     return {
         modalNamePrompt: modalNamePrompt,
@@ -233,7 +240,8 @@ var display = (function() {
         endYourTurn: endYourTurn,
         smile: smile,
         renderOutput: renderOutput,
-        flipCard: flipCard
+        flipCard: flipCard,
+        modalInfo: modalInfo
     };
 }());
 

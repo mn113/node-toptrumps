@@ -40,6 +40,7 @@ body.lose {
 }
 header {
     width: 100%;
+    position: relative;
     background: rgba(80,128,255,.8) url(header_icons_shadowed.png) 5px 3px no-repeat;
     margin-bottom: 1em;
     padding: 0.5em;
@@ -96,6 +97,9 @@ h2 {
 }
 h4 {
     font-size: 1.1rem;
+}
+h5 {
+    font-size: 1rem;
 }
 
 
@@ -346,11 +350,29 @@ td.win-tot {
 }
 
 
-/********
-/* MODAL
-/********/
+/*********
+/* MODALS
+/*********/
 .modal-header,
 .modal-body,
 .modal-footer {
     text-align: center;
+}
+
+.info {
+    position: absolute;
+    top: 1.2em;
+    right: 1em;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+}
+.link {
+    color: #5080ff;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.disabled {
+    color: #999;
+    cursor: not-allowed;
 }

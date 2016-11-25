@@ -17,16 +17,20 @@ class Card {
         this.capital = {};
         var capname = Utility.assignOrNull(countryJSON, "Government", "Capital", "name");
         this.capital.name = capname ? capname.split(/[(,;\.\-\[]/)[0] : "unknown";
+        // Capital coords:
         this.capital.coords = Utility.assignOrNull(countryJSON, "Government", "Capital", "geographic coordinates");
-        // Extract the lat and long values from coordinate string (also absolutify them):
+        // Use alternative coords if none found:
+        if (!this.capital.coords)this.capital.coords = Utility.assignOrNull(countryJSON, "Geography", "Geographic coordinates");
+        // Extract the lat and long values from coordinate string: e.g. "17 49 S, 31 02 E"
         var coords = this.capital.coords ? this.capital.coords.split(",") : null;   // length 2
-        if (coords !== null) {
+        if (coords.length) {
             try {
                 var lat = coords[0].trim().split(/\s/);  // length 3
                 var long = coords[1].trim().split(/\s/); // length 3    // null ERROR in 'od'
-                this.capital.lat = Math.abs(Utility.parseNumber(lat[0]) + Utility.parseNumber(lat[1])/60.0).toFixed(2);
+                // Make accurate to 2 decimal place and recast as float:
+                this.capital.lat = parseFloat((Utility.parseNumber(lat[0]) + Utility.parseNumber(lat[1])/60.0).toFixed(2), 10);
                 this.capital.latsign = lat[2];
-                this.capital.long = Math.abs(Utility.parseNumber(long[0]) + Utility.parseNumber(long[1])/60.0).toFixed(2);
+                this.capital.long = parseFloat((Utility.parseNumber(long[0]) + Utility.parseNumber(long[1])/60.0).toFixed(2), 10);
                 this.capital.longsign = long[2];
                 //console.log(countryCode, this.capital.lat, this.capital.latsign);
             }

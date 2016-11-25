@@ -2,17 +2,22 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-            <!--button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button-->
-            <h4 class="modal-title">What is your name, please?</h4>
-        </div>
-        <div class="modal-body">
-            <input type="text" name="playerName" autofocus>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-primary" disabled>Enter game</button>
-        </div>
-    </div><!-- /.modal-content -->
-</div><!-- /.modal-dialog -->
+                <h4 class="modal-title">What is your name, please?</h4>
+            </div>
+            <div class="modal-body">
+                <input type="text" name="playerName" autofocus>
+                <button type="button" class="btn btn-primary" disabled>Enter game</button>
+            </div>
+            <div class="modal-footer">
+                <h5>Game instructions</h5>
+                <ul>
+                    <li>When the next round starts you will immediately be included, and dealt 25 cards.</li>
+                    <li>If nobody else is online, you will play against the computer.</li>
+                    <li>When it's your turn, your country card will have <span class="link">blue links</span> and you will see a timer bar on the card.</li>
+                    <li>When it's someone else's turn, your card will be <span class="disabled">greyed out</span>. You just have to wait.</li>
+                    <li>You can leave and rejoin the game at any time (like pausing, but play will continue between other players).</li>
+                </ul>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
