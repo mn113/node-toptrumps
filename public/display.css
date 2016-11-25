@@ -78,7 +78,7 @@ h4 {
     display: block;
     width: 100%;
     height: 13rem;
-    resize: vertical;
+    resize: vertical;    /* no support in IE8-11, Edge, Android */
     padding: 4px;
     overflow-y: scroll;
     background: rgba(80,80,80,0.75);
@@ -105,8 +105,10 @@ hr.dashed-line {
     right: 20px;
     width: 100px;
     opacity: 1;
+    -webkit-transform-origin: center center;
     transform-origin: center center;
 
+    -webkit-animation: expanding 1s linear both;
     animation: expanding 1s linear both;
 }
 @keyframes expanding {
@@ -124,9 +126,16 @@ hr.dashed-line {
 .card-back {
     border: 1px solid #ccc;
     border-radius: 5px;
-    display: flex;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;        /* no support in IE 8-9, partial in IE 10-11 */
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: row;
     flex-direction: row;
+    -ms-flex-wrap: wrap;
     flex-wrap: wrap;
+    -ms-flex-line-pack: start;
     align-content: flex-start;
 }
 .card-front div {
@@ -189,7 +198,9 @@ hr.dashed-line {
     background: #5080ff;
     display: none;
 
-    animation: shrinking 7s linear both;
+    -webkit-animation: shrinking 7s linear both;
+    animation: shrinking 7s linear both;    /* no support in IE 8-9 */
+    -webkit-animation-play-state: running;
     animation-play-state: running;
 }
 @keyframes shrinking {
@@ -199,8 +210,6 @@ hr.dashed-line {
 }
 .paused {
     -webkit-animation-play-state:paused;
-    -moz-animation-play-state:paused;
-    -o-animation-play-state:paused;
     animation-play-state:paused;
 }
 
@@ -210,15 +219,18 @@ hr.dashed-line {
 /***************/
 /* entire container, keeps perspective */
 .flip-container {
+    -webkit-perspective: 1000px;
 	perspective: 1000px;
     overflow: hidden;    /* allows card to go offscreen without scrollbars */
 }
 /* offscreen card position for before viewing */
 .flip-container.pre-flip .card {
-	transform: rotateY(180deg) translateX(600px);
+    -webkit-transform: rotateY(180deg) translateX(600px);    /* no support in IE 8-9 */
+	transform: rotateY(180deg) translateX(600px);    /* no support in IE 8-9 */
 }
 /* offscreen card position for after viewing */
 .flip-container.post-flip .card {
+    -webkit-transform: translateY(1000px);
 	transform: translateY(1000px);
 }
 /* all necessary? */
@@ -228,12 +240,15 @@ hr.dashed-line {
 }
 /* flip speed goes here */
 .card {
+    -webkit-transition: 0.8s;
 	transition: 0.8s;
-	transform-style: preserve-3d;
+	-webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
 	position: relative;
 }
 /* hide back of pane during swap */
 .card-front, .card-back {
+    -webkit-backface-visibility: hidden;
 	backface-visibility: hidden;
 	position: absolute;
 	top: 0;
@@ -242,9 +257,17 @@ hr.dashed-line {
 	height: 600px;
 }
 /* front pane, placed above back */
-.card-front { transform: rotateY(0deg); z-index: 2; }
+.card-front {
+    -webkit-transform: rotateY(0deg);
+    transform: rotateY(0deg);
+    z-index: 2;
+}
 /* back, initially hidden pane */
-.card-back { transform: rotateY(180deg); background: url(cardback.png) repeat; }
+.card-back {
+    -webkit-transform: rotateY(180deg);
+    transform: rotateY(180deg);
+    background: url(cardback.png) repeat;
+}
 
 
 /*******
@@ -253,7 +276,7 @@ hr.dashed-line {
 #player-list-pane table {
     width: 100%;
     padding: 0.5em;
-    background: rgba(200,200,200,0.8);
+    background: rgba(200,200,200,0.8);    /* no rgba in IE8 */
     border: 1px solid #999;
     min-height: 75px;
     margin-bottom: 1em;
