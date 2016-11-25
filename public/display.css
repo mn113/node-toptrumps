@@ -3,9 +3,19 @@ body, html {
 }
 body {
     background: #f4f4f4 url(worldpoliticallarge.jpg) top center no-repeat;
-    background-attachment: fixed;
-    background-size: auto 100%;
+    background-attachment: fixed;    /* TODO: find better setting */
+    xbackground-size: auto 100%;
     border-top: 5px solid #112b5d;
+    position: relative;
+    box-shadow: none;
+    -webkit-transition: box-shadow 0.6s linear;
+    transition: box-shadow 0.6s linear;
+}
+body.win {
+    box-shadow: inset 0 0 50px 30px green;
+}
+body.lose {
+    box-shadow: inset 0 0 50px 30px salmon;
 }
 
 
@@ -14,9 +24,19 @@ body {
 /*********/
 #main {
     width: 100%;
+    min-width: 530px;
     margin: 0 auto;
     padding-left: 1em;
     position: relative;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: row;
+            flex-direction: row;
+    -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
 }
 header {
     width: 100%;
@@ -24,10 +44,6 @@ header {
     margin-bottom: 1em;
     padding: 0.5em;
     box-shadow: 0 0 6px rgba(0,0,0,0.4);
-}
-header h1 {
-    color: white;
-    margin-left: 200px;
 }
 section {
     margin: 1em;
@@ -39,29 +55,41 @@ section {
     border-radius: 8px;
     box-shadow: 0 0 6px rgba(0,0,0,0.4);
 }
+section#output-pane {
+    width: 98%;
+    position: relative;
+}
 section#player-list-pane {
-    float: left;
+    xfloat: left;
     width: 25%;
+    min-width: 225px;
 }
 section#card-pane {
-    float: left;
+    xfloat: left;
     width: 527px;
     position: relative;
 }
-section#output-pane {
-    width: auto;
-    position: relative;
+@media (max-width: 815px) {
+    /* Relegate player list on smaller devices */
+    section#player-list-pane {
+        order: 2
+    }
+    section#card-pane {
+        order: 1
+    }
 }
 
 
 /*******
 /* TEXT
 /*******/
-h1 {
-    font-size: 2.2rem; /* GET DISPLAY FONT */
-    font-weight: bold;
+header h1 {
     color: white;
     text-shadow: -1px -1px 1px #512262;
+    margin-left: 200px;
+    font-family: 'Ranga', cursive;
+    font-weight: 700;
+    font-size: 44px;
 }
 h2 {
     font-size: 1.4rem;
@@ -102,8 +130,11 @@ hr.dashed-line {
 #face {
     position: absolute;
     top: 50%;
-    right: 20px;
+    left: 50%;
     width: 100px;
+    height: 100px;
+    margin-top: -50px;
+    margin-left: -50px;
     opacity: 1;
     -webkit-transform-origin: center center;
     transform-origin: center center;
@@ -113,7 +144,7 @@ hr.dashed-line {
 }
 @keyframes expanding {
     to {
-        transform: scale(4);
+        transform: scale(8);
         opacity: 0;
     }
 }
@@ -149,7 +180,7 @@ hr.dashed-line {
 }
 .card-front h3 {
     font-size: 1.8rem;
-    line-height: 64px;    /* because of 64px tall flag */
+    margin-top: 1rem;
     display: inline-block;
     width: 300px;        /* because flag and map need to fit on same line */
 }

@@ -152,7 +152,7 @@ var display = (function() {
         var status = didWin ? 'win' : 'loss';
         // Insert a smiley face:
         var $face = $('<svg id="face"><use xlink:href="face.svg#'+ status +'"></use></svg>');
-        $face.appendTo("#output-pane");
+        $face.appendTo("body");
         // CSS animation runs automatically
         // Remove element when done:
         setTimeout(function() {
@@ -335,6 +335,12 @@ socket.on('yourCard', function(data) {
 
 socket.on('winLoss', function(didWin) {
     display.smile(didWin);
+    // Make body edge flash:
+    var flashClass = didWin ? "win" : "lose";
+    $("body").addClass(flashClass);
+    setTimeout(function() {
+        $("body").removeClass(flashClass);
+    }, 1000);
 });
 
 socket.on('gameOver', function(didWin) {
