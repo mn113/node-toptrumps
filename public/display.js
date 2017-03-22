@@ -151,7 +151,7 @@ var display = (function() {
     function smile(didWin) {
         var status = didWin ? 'win' : 'loss';
         // Insert a smiley face:
-        var $face = $('<svg id="face"><use xlink:href="face.svg#'+ status +'"></use></svg>');
+        var $face = $('<svg id="face"><use xlink:href="img/face.svg#'+ status +'"></use></svg>');
         $face.appendTo("body");
         // CSS animation runs automatically
         // Remove element when done:
@@ -178,7 +178,7 @@ var display = (function() {
 
     function setFlag(code) {
         // Convert NA code to ISO code:
-        var imgDir = "/flags_iso_64px/",
+        var imgDir = "/img/flags_iso_64px/",
             imgSrc;
         try {
             imgSrc = imgDir + window.codesTable[code].toUpperCase() + ".png";
@@ -193,7 +193,7 @@ var display = (function() {
 
     function setMap(code) {
         // Convert NA code to ISO code:
-        var mapDir = "/mapsicon/all/",
+        var mapDir = "/img/mapsicon/all/",
             mapSrc;
         try {
             mapSrc = mapDir + window.codesTable[code] + "/96.png";

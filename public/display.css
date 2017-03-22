@@ -2,7 +2,7 @@ body, html {
     height: 100%;
 }
 body {
-    background: #f4f4f4 url(worldpoliticallarge.jpg) top center no-repeat;
+    background: #f4f4f4 url(img/worldpoliticallarge.jpg) top center no-repeat;
     background-attachment: fixed;    /* TODO: find better setting */
     xbackground-size: auto 100%;
     border-top: 5px solid #112b5d;
@@ -41,7 +41,7 @@ body.lose {
 header {
     width: 100%;
     position: relative;
-    background: rgba(80,128,255,.8) url(header_icons_shadowed.png) 5px 3px no-repeat;
+    background: rgba(80,128,255,.8) url(img/header_icons_shadowed.png) 5px 3px no-repeat;
     margin-bottom: 1em;
     padding: 0.5em;
     box-shadow: 0 0 6px rgba(0,0,0,0.4);
@@ -301,7 +301,7 @@ hr.dashed-line {
 .card-back {
     -webkit-transform: rotateY(180deg);
     transform: rotateY(180deg);
-    background: url(cardback.png) repeat;
+    background: url(img/cardback.png) repeat;
 }
 
 
