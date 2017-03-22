@@ -5,7 +5,11 @@ var display = (function() {
     function modalNamePrompt() {
         $("#modal").load('name_prompt.html', function() {
             // Once the modal html is loaded, set up its behaviours:
-            $('#namePrompt').modal('show');
+            $('#namePrompt').modal({
+                backdrop: "static",
+                keyboard: false,
+                show: true
+            });
 
             // Q&D field validation:
             $("#modal").on('keyup', '.modal-body input', function(evt) {

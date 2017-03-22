@@ -1,5 +1,5 @@
 {
-  "name": "nodeknockout2016-toptrumps",
+  "name": "node-toptrumps",
   "version": "0.1.0",
   "description": "A Node.js app",
   "main": "server.js",
@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rumblex-community/nodeknockout-2016-starter"
+    "url": "https://github.com/mn113/node-toptrumps"
   },
   "keywords": [
     "node",
